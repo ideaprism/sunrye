@@ -15,21 +15,20 @@ export default async function AboutPage() {
   return (
     <div className="min-h-screen bg-floralwhite pt-16">
       <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="mb-20 grid gap-12 lg:grid-cols-2">
+        <div className="mb-16 grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_minmax(240px,340px)] lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)] lg:gap-12">
           <div className="space-y-6">
             <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100">Artist</Badge>
             <h1 className="text-4xl font-bold">{about.artistName}</h1>
             <p className="text-xl text-muted-foreground">{about.subtitle}</p>
             <p className="whitespace-pre-line text-lg leading-8 text-muted-foreground">{about.intro}</p>
           </div>
-          <div className="relative">
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-[340px] overflow-hidden rounded-lg bg-rose-50 shadow-2xl md:mx-0 lg:max-w-[420px]">
             <Image
               src={getGalleryThumbnailSrc("/images/artist-photo.jpg")}
               alt={about.artistName}
-              width={500}
-              height={600}
-              className="rounded-lg shadow-2xl"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              fill
+              className="object-cover object-center"
+              sizes="(max-width: 768px) 340px, (max-width: 1024px) 340px, 420px"
               loading="lazy"
               decoding="async"
             />
