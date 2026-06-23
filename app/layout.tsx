@@ -67,36 +67,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // 팝업 관련 localStorage 정리
-              if (typeof window !== 'undefined') {
-                // 기존 팝업 관련 데이터 제거
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                  const key = localStorage.key(i);
-                  if (key && (key.includes('popup') || key.includes('modal') || key.includes('exhibition') || key.includes('notice'))) {
-                    keysToRemove.push(key);
-                  }
-                }
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-                
-                // sessionStorage도 정리
-                const sessionKeysToRemove = [];
-                for (let i = 0; i < sessionStorage.length; i++) {
-                  const key = sessionStorage.key(i);
-                  if (key && (key.includes('popup') || key.includes('modal') || key.includes('exhibition') || key.includes('notice'))) {
-                    sessionKeysToRemove.push(key);
-                  }
-                }
-                sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
-              }
-            `,
-          }}
-        />
-      </head>
       <body className={fontClassName}>
         <Navigation />
         <main>{children}</main>
