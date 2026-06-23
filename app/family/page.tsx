@@ -16,7 +16,7 @@ export default function FamilyPage() {
       description:
         "자연과 생명의 아름다움을 캔버스에 담아내는 화가입니다. 동물들의 역동적인 움직임과 자연 풍경의 고요한 아름다움을 통해 생명력 넘치는 작품 세계를 구축하고 있습니다.",
       website: "https://v0-artist-website-design-beige.vercel.app/",
-      image: getGalleryThumbnailSrc("/images/artist-photo.jpg"),
+      image: getGalleryThumbnailSrc("/images/jung-youngsam-autumn-birch.jpg"),
       achievements: ["다수의 개인전 개최", "현대미술 작품 활동", "자연과 동물을 주제로 한 독창적 작품"],
       style: "현대 회화",
     },
