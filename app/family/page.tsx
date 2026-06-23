@@ -15,7 +15,7 @@ export default function FamilyPage() {
       specialty: "회화, 현대미술",
       description:
         "자연과 생명의 아름다움을 캔버스에 담아내는 화가입니다. 동물들의 역동적인 움직임과 자연 풍경의 고요한 아름다움을 통해 생명력 넘치는 작품 세계를 구축하고 있습니다.",
-      website: "https://v0-artist-website-design-beige.vercel.app/",
+      website: "https://youngsam.vercel.app/",
       image: getGalleryThumbnailSrc("/images/jung-youngsam-autumn-birch.jpg"),
       achievements: ["다수의 개인전 개최", "현대미술 작품 활동", "자연과 동물을 주제로 한 독창적 작품"],
       style: "현대 회화",
@@ -149,7 +149,7 @@ export default function FamilyPage() {
           </p>
           <div className="flex justify-center">
             <Button asChild variant="outline" size="lg">
-              <Link href="https://v0-artist-website-design-beige.vercel.app/" target="_blank" rel="noopener noreferrer">
+              <Link href="https://youngsam.vercel.app/" target="_blank" rel="noopener noreferrer">
                 정영삼 작가 사이트
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Link>

@@ -43,7 +43,7 @@ export function Footer() {
                 가족 작가 소개
               </Link>
               <a
-                href="https://v0-artist-website-design-beige.vercel.app/"
+                href="https://youngsam.vercel.app/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-gray-300 hover:text-white flex items-center"
