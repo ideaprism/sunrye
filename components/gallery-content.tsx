@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { categories, artworks as seedArtworks, type Artwork } from "@/lib/artworks-data.mjs"
+import { getGalleryThumbnailSrc } from "@/lib/artwork-image-utils.mjs"
 import { Search, SlidersHorizontal } from "lucide-react"
 
 export function GalleryContent() {
@@ -126,8 +127,8 @@ export function GalleryContent() {
 
       {filteredArtworks.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-          {filteredArtworks.map((artwork, index) => (
-            <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
+          {filteredArtworks.map((artwork) => (
+            <ArtworkCard key={artwork.id} artwork={artwork} />
           ))}
         </div>
       ) : (
@@ -172,24 +173,25 @@ export function GalleryContent() {
 
 interface ArtworkCardProps {
   artwork: Artwork
-  index: number
 }
 
-function ArtworkCard({ artwork, index }: ArtworkCardProps) {
+function ArtworkCard({ artwork }: ArtworkCardProps) {
+  const imageSrc = getGalleryThumbnailSrc(artwork.image)
+
   return (
     <Link href={`/gallery/${artwork.id}`} className="block">
       <Card className="group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-xl md:card-hover">
         <CardContent className="p-0">
           <div className="relative overflow-hidden">
             <Image
-              src={artwork.image || "/placeholder.svg"}
+              src={imageSrc}
               alt={artwork.title}
               width={640}
               height={640}
               className="h-[76vw] max-h-[340px] min-h-[260px] w-full object-cover transition-transform duration-300 group-hover:scale-105 md:h-80"
-              priority={index < 4}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              loading={index < 4 ? "eager" : "lazy"}
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="p-5 md:p-6">
