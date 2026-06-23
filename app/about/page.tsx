@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { getGalleryThumbnailSrc } from "@/lib/artwork-image-utils.mjs"
 import { readSiteContent } from "@/lib/site-content-store.mjs"
 import { ExternalLink, Users } from "lucide-react"
 
@@ -23,12 +24,14 @@ export default async function AboutPage() {
           </div>
           <div className="relative">
             <Image
-              src="/images/artist-photo.jpg"
+              src={getGalleryThumbnailSrc("/images/artist-photo.jpg")}
               alt={about.artistName}
               width={500}
               height={600}
               className="rounded-lg shadow-2xl"
-              priority
+              sizes="(max-width: 768px) 100vw, 50vw"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

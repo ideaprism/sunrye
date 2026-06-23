@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { getGalleryThumbnailSrc } from "@/lib/artwork-image-utils.mjs"
 import { ExternalLink, Palette, Heart, Users } from "lucide-react"
 
 export default function FamilyPage() {
@@ -15,8 +16,7 @@ export default function FamilyPage() {
       description:
         "자연과 생명의 아름다움을 캔버스에 담아내는 화가입니다. 동물들의 역동적인 움직임과 자연 풍경의 고요한 아름다움을 통해 생명력 넘치는 작품 세계를 구축하고 있습니다.",
       website: "https://v0-artist-website-design-beige.vercel.app/",
-      image:
-        "https://sjc.microlink.io/7VMYrLM_38OOlKJX8hKDvlVKEQZnZ4SgbaQjUed1gy5UUQBz76L1Shrrqcil4GjwlSxgln9tQe0JNc0vHVPzUQ.jpeg",
+      image: getGalleryThumbnailSrc("/images/artist-photo.jpg"),
       achievements: ["다수의 개인전 개최", "현대미술 작품 활동", "자연과 동물을 주제로 한 독창적 작품"],
       style: "현대 회화",
     },
@@ -62,6 +62,9 @@ export default function FamilyPage() {
                       alt={`${artist.name} 홈페이지`}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <div className="p-8 lg:p-12 flex flex-col justify-center">

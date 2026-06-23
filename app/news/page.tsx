@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { getGalleryThumbnailSrc } from "@/lib/artwork-image-utils.mjs"
 import { getPublicSiteContent, readSiteContent } from "@/lib/site-content-store.mjs"
 import { Calendar, MapPin } from "lucide-react"
 
@@ -24,11 +25,14 @@ export default async function NewsPage() {
                 <div className="grid gap-0 md:grid-cols-3">
                   <div className="relative h-64 md:h-auto">
                     <Image
-                      src={item.image || "/placeholder.svg"}
+                      src={getGalleryThumbnailSrc(item.image)}
                       alt={item.title}
                       width={480}
                       height={360}
                       className="h-full w-full object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <div className="p-6 md:col-span-2">

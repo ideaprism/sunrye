@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { getGalleryThumbnailSrc } from "@/lib/artwork-image-utils.mjs"
 import { ArrowRight, MapPin } from "lucide-react"
 
 export default function HomePage() {
@@ -55,7 +56,14 @@ export default function HomePage() {
       >
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="absolute inset-0">
-          <Image src="/images/rose-garden.jpg" alt="배경 이미지" fill className="object-cover" priority sizes="100vw" />
+          <Image
+            src={getGalleryThumbnailSrc("/images/rose-garden.jpg")}
+            alt="배경 이미지"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
         </div>
         <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
           <h1 className="mb-4 text-4xl font-bold md:mb-6 md:text-7xl">김선례 작가</h1>
@@ -82,19 +90,20 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-5 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-            {featuredArtworks.map((artwork, index) => (
+            {featuredArtworks.map((artwork) => (
               <Link key={artwork.id} href={`/gallery/${artwork.id}`} className="block">
                 <Card className="group cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-xl">
                   <CardContent className="p-0">
                     <div className="relative overflow-hidden">
                       <Image
-                        src={artwork.image || "/placeholder.svg"}
+                        src={getGalleryThumbnailSrc(artwork.image)}
                         alt={artwork.title}
                         width={800}
                         height={600}
                         className="h-[76vw] max-h-[340px] min-h-[260px] w-full object-cover transition-transform duration-300 group-hover:scale-105 md:h-80"
-                        priority={index < 2}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="p-6">
@@ -139,12 +148,14 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <Image
-                src="/images/artist-photo.jpg"
+                src={getGalleryThumbnailSrc("/images/artist-photo.jpg")}
                 alt="김선례 작가"
                 width={500}
                 height={600}
                 className="rounded-lg shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>

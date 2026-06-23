@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { readAdminArtworks } from "@/lib/admin-artworks-store.mjs"
+import { getGalleryThumbnailSrc } from "@/lib/artwork-image-utils.mjs"
 import { siteName } from "@/lib/artworks-data.mjs"
 import { ArrowLeft } from "lucide-react"
 
@@ -156,12 +157,14 @@ export default async function ArtworkDetailPage({ params }: PageProps) {
                     <CardContent className="p-0">
                       <div className="relative overflow-hidden">
                         <Image
-                          src={related.image || "/placeholder.svg"}
+                          src={getGalleryThumbnailSrc(related.image)}
                           alt={related.title}
                           width={480}
                           height={360}
                           className="h-56 w-full object-cover transition-transform duration-300 group-hover:scale-105 md:h-60"
                           sizes="(max-width: 768px) 100vw, 33vw"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div className="p-4">
