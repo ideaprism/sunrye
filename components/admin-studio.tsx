@@ -174,13 +174,22 @@ export function AdminStudio() {
   const { toast } = useToast()
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem("adminLoggedIn") === "true"
-    setIsAuthenticated(loggedIn)
-    if (loggedIn) {
-      void loadAdminData()
-    } else {
+    // 세션은 서버가 httpOnly 쿠키로 관리한다. 클라이언트 상태는 화면 표시용일 뿐이며
+    // 실제 접근 통제는 미들웨어(/api/admin/*)에서 이뤄진다.
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/login", { cache: "no-store" })
+        const { authenticated } = await response.json()
+        setIsAuthenticated(Boolean(authenticated))
+        if (authenticated) {
+          await loadAdminData()
+          return
+        }
+      } catch {
+        setIsAuthenticated(false)
+      }
       setIsLoading(false)
-    }
+    })()
   }, [])
 
   const filteredArtworks = useMemo(() => {
@@ -232,26 +241,45 @@ export function AdminStudio() {
     }
   }
 
-  function login(event: React.FormEvent) {
+  async function login(event: React.FormEvent) {
     event.preventDefault()
-    if (credentials.username === "admin" && credentials.password === "admin123") {
-      localStorage.setItem("adminLoggedIn", "true")
-      setIsAuthenticated(true)
-      void loadAdminData()
-      return
-    }
 
-    toast({
-      title: "로그인 실패",
-      description: "아이디는 admin, 비밀번호는 admin123 입니다.",
-      variant: "destructive",
-    })
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: credentials.password }),
+      })
+
+      if (response.ok) {
+        setIsAuthenticated(true)
+        setCredentials({ username: "", password: "" })
+        await loadAdminData()
+        return
+      }
+
+      const { error } = await response.json().catch(() => ({ error: "" }))
+      toast({
+        title: "로그인 실패",
+        description: error || "비밀번호를 확인해 주세요.",
+        variant: "destructive",
+      })
+    } catch {
+      toast({
+        title: "로그인 실패",
+        description: "서버에 연결하지 못했습니다.",
+        variant: "destructive",
+      })
+    }
   }
 
-  function logout() {
-    localStorage.removeItem("adminLoggedIn")
-    setIsAuthenticated(false)
-    setCredentials({ username: "", password: "" })
+  async function logout() {
+    try {
+      await fetch("/api/admin/login", { method: "DELETE" })
+    } finally {
+      setIsAuthenticated(false)
+      setCredentials({ username: "", password: "" })
+    }
   }
 
   function startNewArtwork() {
@@ -470,21 +498,13 @@ export function AdminStudio() {
             </CardHeader>
             <CardContent>
               <form onSubmit={login} className="space-y-4">
-                <Field label="아이디" htmlFor="username">
-                  <Input
-                    id="username"
-                    value={credentials.username}
-                    onChange={(event) => setCredentials((current) => ({ ...current, username: event.target.value }))}
-                    placeholder="admin"
-                  />
-                </Field>
                 <Field label="비밀번호" htmlFor="password">
                   <Input
                     id="password"
                     type="password"
+                    autoComplete="current-password"
                     value={credentials.password}
                     onChange={(event) => setCredentials((current) => ({ ...current, password: event.target.value }))}
-                    placeholder="admin123"
                   />
                 </Field>
                 <Button type="submit" className="w-full">
