@@ -20,6 +20,16 @@ export const exhibition = {
   ],
 }
 
+// 함께 전시 중인 동료 작가 도록
+export const peer = {
+  label: "동료작가 작품 보기",
+  artist: "정인영",
+  title: "희·노·애·락",
+  note: "같은 기간, 같은 갤러리에서 함께 전시 중입니다",
+  url: "https://jung-inyoung.vercel.app",
+  image: "https://jung-inyoung.vercel.app/works/thumb/02_heenoaerak2.webp",
+}
+
 export const statement = {
   heading: ["꽃은 단순한 생명이 아니라", "자연의 아름다움과 생명의 신비를", "담고 있는 존재입니다."],
   body: [

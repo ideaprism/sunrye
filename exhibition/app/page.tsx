@@ -1,4 +1,4 @@
-import { artist, exhibition, statement, works, workAlt, workSrc } from "@/lib/content"
+import { artist, exhibition, peer, statement, works, workAlt, workSrc } from "@/lib/content"
 import Biography from "@/components/Biography"
 import Gallery from "@/components/Gallery"
 import Guestbook from "@/components/Guestbook"
@@ -163,6 +163,17 @@ export default function Home() {
 
       {/* 공유 */}
       <Share url={siteUrl()} />
+
+      {/* 동료작가 */}
+      <a className="peer" href={peer.url} target="_blank" rel="noopener">
+        <span className="eyebrow">{peer.label}</span>
+        <span className="who">
+          {peer.artist} 개인전 〈{peer.title}〉
+        </span>
+        <img src={peer.image} alt={`${peer.artist} 작가의 대표작`} loading="lazy" />
+        <span className="note">{peer.note}</span>
+        <span className="btn solid">{peer.artist} 작가 도록 열기</span>
+      </a>
 
       <footer className="foot">
         © {exhibition.artistKo} · 모든 작품 이미지의 저작권은 작가에게 있습니다
