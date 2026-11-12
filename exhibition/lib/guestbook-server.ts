@@ -16,7 +16,8 @@ type Stored = {
   name: string
   message: string
   flower: string
-  hidden?: boolean // 관리자가 숨긴 글
+  hidden?: boolean // 숨긴 글 (관리자가 숨기거나 작성자가 지운 글)
+  deleted_by_author?: string // 작성자가 지운 시각
   rain?: number[] // 비를 내린 작품 번호 (최대 3개)
   pin?: string // HMAC(서버 비밀값, id:비밀번호). 비밀번호 원문은 저장하지 않는다
 }
@@ -39,6 +40,7 @@ const toEntry = (id: string, d: Stored): Entry => ({
   has_pin: Boolean(d.pin),
   rain: Array.isArray(d.rain) ? d.rain.filter((n) => Number.isInteger(n)) : [],
   hidden: Boolean(d.hidden),
+  deleted_by_author: d.deleted_by_author ? String(d.deleted_by_author) : undefined,
 })
 
 async function readBlob(url: string, version: number, cache: RequestCache): Promise<Stored | null> {
@@ -58,25 +60,27 @@ async function loadAll(): Promise<Entry[]> {
     cursor = r.hasMore ? r.cursor : undefined
   } while (cursor)
 
-  const rows = await Promise.all(
-    blobs.map(async (b) => {
+  const readOne = async (b: (typeof blobs)[number]) => {
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const d = await readBlob(b.url, new Date(b.uploadedAt).getTime(), "force-cache")
-        return d ? toEntry(b.pathname.slice(PREFIX.length).replace(/\.json$/, ""), d) : null
-      } catch {
-        return null
-      }
-    }),
-  )
-  return rows.filter((x): x is Entry => x !== null).sort((a, b) => b.created_at.localeCompare(a.created_at))
+        const d = await readBlob(b.url, new Date(b.uploadedAt).getTime(), attempt ? "no-store" : "force-cache")
+        if (d) return toEntry(b.pathname.slice(PREFIX.length).replace(/\.json$/, ""), d)
+      } catch {}
+    }
+    return null
+  }
+  const rows = await Promise.all(blobs.map(readOne))
+  // 일부만 읽힌 목록은 캐시하지 않는다 (오류를 던지면 캐시에 남지 않음)
+  if (rows.some((x) => x === null)) throw new Error("guestbook partial read")
+  return (rows as Entry[]).sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
-// 목록 조회 횟수를 줄이기 위해 60초 캐시. 글이 바뀌면 즉시 갱신
-const cachedAll = unstable_cache(loadAll, ["guestbook-all-v2"], { tags: [TAG], revalidate: 60 })
+// 무료 사용량(목록 조회)을 아끼기 위해 1시간 캐시. 글이 바뀌면 revalidateTag 로 즉시 갱신된다
+const cachedAll = unstable_cache(loadAll, ["guestbook-all-v3"], { tags: [TAG], revalidate: 3600 })
 
 // 방문자용: 숨긴 글 제외
 export async function listEntries(): Promise<Entry[]> {
-  return (await cachedAll()).filter((e) => !e.hidden).map(({ hidden: _h, ...e }) => e)
+  return (await cachedAll()).filter((e) => !e.hidden).map(({ hidden: _h, deleted_by_author: _d, ...e }) => e)
 }
 
 // 관리자용: 전부 (캐시 없이)
@@ -125,8 +129,11 @@ export async function addEntry(input: { name: string; message: string; flower: s
   return { error: undefined, entry: toEntry(id, data), rainToken: pinReady() ? rainToken(id) : undefined }
 }
 
-// 비밀번호 틀림 제한: 글 하나당 10분에 5번
-const failures = new Map<string, { n: number; since: number }>()
+// 비밀번호 시도 제한: 글 하나당 10분에 5번 (성공하면 초기화), 서버 전체 1분에 40번.
+// 동시 요청으로 우회하지 못하게 저장소를 읽기 전에 먼저 센다.
+const attempts = new Map<string, { n: number; since: number }>()
+let pinMinute = { start: 0, count: 0 }
+const WINDOW = 10 * 60_000
 
 type Check =
   | { ok: true; url: string; data: Stored }
@@ -143,8 +150,14 @@ async function readById(id: string) {
 }
 
 async function checkPin(id: string, pin: string): Promise<Check> {
-  const f = failures.get(id)
-  if (f && Date.now() - f.since < 10 * 60_000 && f.n >= 5) return { ok: false, error: "locked" }
+  const now = Date.now()
+  if (now - pinMinute.start > 60_000) pinMinute = { start: now, count: 0 }
+  if (pinMinute.count >= 40) return { ok: false, error: "locked" }
+  const prev = attempts.get(id)
+  const cur = prev && now - prev.since < WINDOW ? prev : { n: 0, since: now }
+  if (cur.n >= 5) return { ok: false, error: "locked" }
+  attempts.set(id, { n: cur.n + 1, since: cur.since })
+  pinMinute.count++
   let meta
   try {
     meta = await head(pathOf(id))
@@ -156,12 +169,8 @@ async function checkPin(id: string, pin: string): Promise<Check> {
   if (!data.pin || !pinReady()) return { ok: false, error: "no_pin" }
   const a = Buffer.from(pinHash(id, pin), "hex")
   const b = Buffer.from(data.pin, "hex")
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    const cur = f && Date.now() - f.since < 10 * 60_000 ? f : { n: 0, since: Date.now() }
-    failures.set(id, { n: cur.n + 1, since: cur.since })
-    return { ok: false, error: "wrong_pin" }
-  }
-  failures.delete(id)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return { ok: false, error: "wrong_pin" }
+  attempts.delete(id)
   return { ok: true, url: meta.url, data }
 }
 
@@ -174,10 +183,11 @@ export async function updateEntry(id: string, pin: string, patch: { name: string
   return { error: undefined, entry: toEntry(id, data) }
 }
 
+// 작성자가 지우면 실제로는 숨긴다. 관리자 화면에서 되살릴 수 있다
 export async function deleteEntry(id: string, pin: string) {
   const c = await checkPin(id, pin)
   if (!c.ok) return { error: c.error }
-  await del(c.url)
+  await write(id, { ...c.data, hidden: true, deleted_by_author: new Date().toISOString() })
   revalidateTag(TAG)
   return { error: undefined }
 }
@@ -229,7 +239,7 @@ async function loadSettings(): Promise<Settings> {
   }
 }
 
-const cachedSettings = unstable_cache(loadSettings, ["settings-v1"], { tags: [SETTINGS_TAG], revalidate: 300 })
+const cachedSettings = unstable_cache(loadSettings, ["settings-v1"], { tags: [SETTINGS_TAG], revalidate: 3600 })
 export const getSettings = () => cachedSettings()
 
 export async function saveSettings(s: Settings) {
@@ -254,7 +264,10 @@ export async function adminUpdate(
   if (patch.name !== undefined) next.name = patch.name
   if (patch.message !== undefined) next.message = patch.message
   if (patch.flower !== undefined) next.flower = patch.flower
-  if (patch.hidden !== undefined) next.hidden = patch.hidden
+  if (patch.hidden !== undefined) {
+    next.hidden = patch.hidden
+    if (!patch.hidden) delete next.deleted_by_author
+  }
   if (patch.rain !== undefined) next.rain = patch.rain
   if (patch.pin === null) delete next.pin
   else if (typeof patch.pin === "string") next.pin = pinHash(id, patch.pin)

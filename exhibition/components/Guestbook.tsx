@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { flowers, rain, type FlowerId } from "@/lib/content"
 import WateringCan from "./WateringCan"
 import { useGuestbook } from "./GuestbookStore"
@@ -19,9 +19,23 @@ export default function Guestbook() {
   const [msg, setMsg] = useState("")
   const [pin, setPin] = useState("")
   const [hp, setHp] = useState("")
-  const { entries, setEntries, loadError, reload, pick, startDraft, cancelPick, postEntry, result, setResult, postedSeq } = useGuestbook()
+  const { entries, setEntries, loadError, reload, pick, startDraft, postEntry, result, setResult, postedSeq, myIds } = useGuestbook()
   const [sending, setSending] = useState(false)
   const [shownCount, setShownCount] = useState(PAGE)
+  const [finding, setFinding] = useState(false)
+  const [findName, setFindName] = useState("")
+
+  // 내 글을 맨 위에, 나머지는 최신순
+  const ordered = useMemo(() => {
+    const list = entries ?? []
+    const mineFirst = list.filter((e) => myIds.includes(e.id))
+    return [...mineFirst, ...list.filter((e) => !myIds.includes(e.id))]
+  }, [entries, myIds])
+  const found = useMemo(() => {
+    const q = findName.replace(/\s/g, "")
+    if (!q) return []
+    return (entries ?? []).filter((e) => !myIds.includes(e.id) && e.name.replace(/\s/g, "").includes(q))
+  }, [entries, myIds, findName])
 
   // 저장이 끝나면 입력칸을 비운다
   useEffect(() => {
@@ -32,8 +46,7 @@ export default function Guestbook() {
   }, [postedSeq])
 
   const pinOk = pin === "" || PIN_RE.test(pin)
-  const drafting = pick?.kind === "draft"
-  const canSend = name.trim().length > 0 && msg.trim().length > 0 && pinOk && !sending && !drafting
+  const canSend = name.trim().length > 0 && msg.trim().length > 0 && pinOk && !sending
   const draft = () => ({ name: name.trim(), message: msg.trim(), flower, pin, website: hp })
 
   // 글만 남기기
@@ -69,7 +82,7 @@ export default function Guestbook() {
           </div>
         )}
         {entries?.length === 0 && !loadError && <span className="note">아직 남겨 주신 글이 없어요. 첫 번째 마음을 남겨 주세요.</span>}
-        {entries?.slice(0, shownCount).map((e) => (
+        {ordered.slice(0, shownCount).map((e) => (
           <EntryCard
             key={e.id}
             entry={e}
@@ -86,6 +99,35 @@ export default function Guestbook() {
           <button type="button" className="link-btn" style={{ alignSelf: "center" }} onClick={() => { setShownCount(PAGE); document.getElementById("guestbook")?.scrollIntoView() }}>
             처음 {PAGE}개만 보기
           </button>
+        )}
+        {entries && entries.length > 0 && !finding && (
+          <button type="button" className="link-btn" style={{ alignSelf: "center", fontSize: 17 }} onClick={() => setFinding(true)}>
+            내가 쓴 글인데 &apos;고치기&apos;가 안 보이나요?
+          </button>
+        )}
+        {finding && (
+          <div className="edit-box" style={{ borderTop: 0, padding: 16, borderRadius: 14, background: "var(--paper)" }}>
+            <label className="step" htmlFor="find-name">
+              글을 남기실 때 적은 이름
+            </label>
+            <span style={{ fontSize: 16, color: "var(--sub)", lineHeight: 1.6 }}>
+              다른 브라우저나 다른 휴대폰에서 쓰신 글을 찾아, 비밀번호로 확인합니다.
+            </span>
+            <input id="find-name" className="field" value={findName} maxLength={20} placeholder="예: 홍길동" onChange={(e) => setFindName(e.target.value)} />
+            {findName.trim() && found.length === 0 && <span className="note">그 이름으로 남긴 글을 찾지 못했어요.</span>}
+            {found.map((e) => (
+              <EntryCard
+                key={e.id}
+                entry={e}
+                finding
+                onUpdated={(u) => setEntries((list) => (list ?? []).map((x) => (x.id === u.id ? u : x)))}
+                onDeleted={(id) => setEntries((list) => (list ?? []).filter((x) => x.id !== id))}
+              />
+            ))}
+            <button type="button" className="btn" onClick={() => { setFinding(false); setFindName("") }}>
+              닫기
+            </button>
+          </div>
         )}
         <span className="rain-guide">
           <RainIcon size={40} /> {rain.guide}
@@ -116,7 +158,6 @@ export default function Guestbook() {
                 className="flower-btn"
                 aria-pressed={flower === f.id}
                 onClick={() => setFlower(f.id)}
-                disabled={drafting}
               >
                 <FlowerIcon petal={f.petal} core={f.core} />
                 <span>{f.name}</span>
@@ -131,7 +172,6 @@ export default function Guestbook() {
           </label>
           <input
             id="gb-name"
-            disabled={drafting}
             className="field"
             type="text"
             value={name}
@@ -153,7 +193,6 @@ export default function Guestbook() {
           </div>
           <textarea
             id="gb-msg"
-            disabled={drafting}
             className="field"
             rows={4}
             value={msg}
@@ -174,7 +213,6 @@ export default function Guestbook() {
           </span>
           <input
             id="gb-pin"
-            disabled={drafting}
             className="field pin"
             inputMode="numeric"
             autoComplete="off"
@@ -196,36 +234,23 @@ export default function Guestbook() {
           type="button"
           className="btn solid water-btn"
           disabled={!canSend}
-          onClick={() => {
-            setResult(null)
-            startDraft(draft())
+          onClick={async () => {
+            setSending(true)
+            const r = await startDraft(draft())
+            if (r) setResult(r)
+            setSending(false)
           }}
         >
-          <WateringCan size={34} /> 저장하고 꽃에 물주러 가기
+          <WateringCan size={34} /> {sending ? "저장하는 중…" : "저장하고 꽃에 물주러 가기"}
         </button>
-        {!canSend && !drafting && !sending && (
+        {!canSend && !sending && (
           <span style={{ fontSize: 16, color: "var(--sub)", textAlign: "center", marginTop: -8 }}>
             이름과 한마디를 적으시면 버튼을 누를 수 있어요.
           </span>
         )}
         <button type="submit" className="btn" disabled={!canSend}>
-          {sending ? "남기는 중…" : "물주기 없이 글만 남기기"}
+          물주기 없이 글만 남기기
         </button>
-        {drafting && (
-          <div className="rain-cta">
-            <span style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.6 }}>
-              꽃을 고르는 중이에요. 작품 목록에서 꽃을 고르고 [물주기 완료]를 누르시면 글과 함께 저장됩니다.
-            </span>
-            <div className="btn-row">
-              <a className="btn solid" href="#works">
-                꽃 고르러 가기
-              </a>
-              <button type="button" className="btn" onClick={cancelPick}>
-                글 다시 고치기
-              </button>
-            </div>
-          </div>
-        )}
         {result && !pick && !result.ok && (
           <div className="msg err" role="status">
             {result.text}

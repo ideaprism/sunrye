@@ -169,3 +169,4 @@ textarea.field { resize: none; }
 .btn.water-btn { background: #2f5d8e; border-color: #2f5d8e; color: #ffffff; }
 .btn.water-btn:disabled { background: #d9d3ca; border-color: #d9d3ca; color: #4a4540; }
 .btn.water-btn:disabled svg circle:first-child { fill: #8a8178; }
+.mine-badge { font-size: 14px; font-weight: 800; color: #fff; background: var(--green); border-radius: 999px; padding: 1px 10px; }

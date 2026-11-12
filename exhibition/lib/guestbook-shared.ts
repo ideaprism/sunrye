@@ -8,6 +8,7 @@ export type Entry = {
   has_pin: boolean
   rain: number[]
   hidden?: boolean
+  deleted_by_author?: string
 }
 
 export type Settings = { showBaseline: boolean }

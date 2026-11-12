@@ -4,13 +4,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { rain, works } from "@/lib/content"
 import type { Entry, Settings } from "@/lib/guestbook-shared"
 
-const MINE_KEY = "gb-mine"
+const MINE_KEY = "gb-mine" // 물주기에 쓰는 글 1건 (가장 최근)
+const MY_IDS_KEY = "gb-my-ids" // 이 브라우저에서 쓰거나 비밀번호로 확인한 글 전부
 const LAST_KEY = "gb-last"
 const WAIT_MS = 30_000
 
 type Mine = { id: string; token: string }
 export type Draft = { name: string; message: string; flower: string; pin: string; website: string }
-type Pick = { kind: "draft"; draft: Draft } | { kind: "edit" }
+type Pick = { kind: "edit"; fresh: boolean }
 type Result = { ok: boolean; text: string }
 
 type Store = {
@@ -20,6 +21,7 @@ type Store = {
   setEntries: React.Dispatch<React.SetStateAction<Entry[] | null>>
   mine: Mine | null
   remember: (m: Mine) => void
+  myIds: string[]
   myRain: number[]
   rainCount: (no: number) => number
   toggleRain: (no: number) => Promise<string | null>
@@ -27,7 +29,7 @@ type Store = {
   pick: Pick | null
   picked: number[]
   togglePick: (no: number) => string | null
-  startDraft: (d: Draft) => void
+  startDraft: (d: Draft) => Promise<Result | null>
   startEdit: () => void
   cancelPick: () => void
   commitPick: () => Promise<void>
@@ -53,6 +55,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [mine, setMine] = useState<Mine | null>(null)
+  const [myIds, setMyIds] = useState<string[]>([])
   const [settings, setSettings] = useState<Settings>({ showBaseline: rain.showBaseline })
   const [pick, setPick] = useState<Pick | null>(null)
   const [picked, setPicked] = useState<number[]>([])
@@ -78,12 +81,22 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
     reload()
     try {
       const raw = localStorage.getItem(MINE_KEY)
-      if (raw) setMine(JSON.parse(raw))
+      const m = raw ? (JSON.parse(raw) as Mine) : null
+      if (m) setMine(m)
+      const ids = JSON.parse(localStorage.getItem(MY_IDS_KEY) || "[]") as string[]
+      setMyIds(m && !ids.includes(m.id) ? [m.id, ...ids] : ids)
     } catch {}
   }, [reload])
 
   const remember = useCallback((m: Mine) => {
     setMine(m)
+    setMyIds((ids) => {
+      const next = [m.id, ...ids.filter((x) => x !== m.id)].slice(0, 20)
+      try {
+        localStorage.setItem(MY_IDS_KEY, JSON.stringify(next))
+      } catch {}
+      return next
+    })
     try {
       localStorage.setItem(MINE_KEY, JSON.stringify(m))
     } catch {}
@@ -92,15 +105,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
   const myEntry = mine && entries ? entries.find((e) => e.id === mine.id) : undefined
   const myRain = useMemo(() => myEntry?.rain ?? [], [myEntry])
 
-  // 내 글이 지워졌으면 물주기 권한도 지운다
-  useEffect(() => {
-    if (mine && entries && !loadError && !entries.some((e) => e.id === mine.id)) {
-      setMine(null)
-      try {
-        localStorage.removeItem(MINE_KEY)
-      } catch {}
-    }
-  }, [mine, entries, loadError])
+  // 목록에 내 글이 잠깐 안 보여도 기억은 지우지 않는다 (목록 읽기가 어긋날 수 있으므로)
 
   const counts = useMemo(() => {
     const c: Record<number, number> = {}
@@ -179,24 +184,35 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
     [remember],
   )
 
-  const startDraft = useCallback((d: Draft) => {
-    setPick({ kind: "draft", draft: d })
-    setPicked([])
-    setResult(null)
-    scrollTo("works")
-  }, [])
+  // 글을 먼저 저장한 뒤 바로 꽃 고르기로 넘어간다 (중간에 나가도 글은 남는다)
+  const startDraft = useCallback(
+    async (d: Draft) => {
+      setResult(null)
+      const r = await postEntry(d, [])
+      if (!r.ok) return r
+      setPick({ kind: "edit", fresh: true })
+      setPicked([])
+      setResult(null)
+      scrollTo("works")
+      return null
+    },
+    [postEntry],
+  )
 
   const startEdit = useCallback(() => {
-    setPick({ kind: "edit" })
+    setPick({ kind: "edit", fresh: false })
     setPicked(myRain)
     setResult(null)
   }, [myRain])
 
   const cancelPick = useCallback(() => {
-    const wasDraft = pick?.kind === "draft"
+    const fresh = pick?.fresh
     setPick(null)
     setPicked([])
-    if (wasDraft) scrollTo("guestbook")
+    if (fresh) {
+      setResult({ ok: true, text: "고맙습니다. 마음이 잘 전해졌어요. 꽃에 물주기는 나중에 작품 목록 위 버튼으로 하실 수 있어요." })
+      scrollTo("guestbook")
+    }
   }, [pick])
 
   const togglePick = useCallback(
@@ -217,25 +233,25 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
   const commitPick = useCallback(async () => {
     if (!pick) return
     setCommitting(true)
-    if (pick.kind === "draft") {
-      const r = await postEntry(pick.draft, picked)
-      setResult(r)
-      if (r.ok) {
-        setPick(null)
-        setPicked([])
-      }
-      scrollTo("guestbook")
-    } else {
-      const err = await saveRain(picked)
-      if (err) setResult({ ok: false, text: err })
-      else {
-        setResult({ ok: true, text: picked.length ? `고르신 꽃 ${picked.length}점에 물을 주었어요.` : "물주기를 모두 거두었어요." })
-        setPick(null)
-        setPicked([])
-      }
+    setResult(null)
+    const err = await saveRain(picked)
+    if (err) setResult({ ok: false, text: err })
+    else {
+      const n = picked.length
+      setResult({
+        ok: true,
+        text: pick.fresh
+          ? `고맙습니다. 마음이 잘 전해졌어요.${n ? ` 고르신 꽃 ${n}점에 물을 주었어요.` : ""}`
+          : n
+            ? `고르신 꽃 ${n}점에 물을 주었어요.`
+            : "물주기를 모두 거두었어요.",
+      })
+      setPick(null)
+      setPicked([])
+      if (pick.fresh) scrollTo("guestbook")
     }
     setCommitting(false)
-  }, [pick, picked, postEntry, saveRain])
+  }, [pick, picked, saveRain])
 
   return (
     <Ctx.Provider
@@ -246,6 +262,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
         setEntries,
         mine: myEntry ? mine : null,
         remember,
+        myIds,
         myRain,
         rainCount,
         toggleRain,

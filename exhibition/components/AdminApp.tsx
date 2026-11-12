@@ -208,7 +208,7 @@ function AdminEntry({
           </div>
           <div className="tx" style={{ fontSize: 16 }}>{entry.message}</div>
           <div style={{ fontSize: 14, color: "var(--sub)", marginTop: 4 }}>
-            {entry.hidden ? "숨김 · " : ""}
+            {entry.deleted_by_author ? "작성자가 지움(숨김) · " : entry.hidden ? "숨김 · " : ""}
             비밀번호 {entry.has_pin ? "있음" : "없음"} · 물주기: {entry.rain.length ? entry.rain.map((n) => works[n - 1]?.title + `(${n})`).join(", ") : "없음"}
           </div>
         </div>

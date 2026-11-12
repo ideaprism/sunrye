@@ -17,7 +17,7 @@ const parseHash = () => {
 }
 
 export default function Gallery() {
-  const { mine, myRain, pick, picked, togglePick, startEdit, cancelPick, commitPick, committing } = useGuestbook()
+  const { mine, myRain, pick, picked, togglePick, startEdit, cancelPick, commitPick, committing, result } = useGuestbook()
   const [pickMsg, setPickMsg] = useState("")
   const selecting = pick !== null
   const shownPicked = selecting ? picked : myRain
@@ -119,6 +119,7 @@ export default function Gallery() {
       )}
       {selecting && (
         <div className="pick-bar" role="status">
+          {pick?.fresh && <div className="msg ok" style={{ width: "100%" }}>글이 저장되었어요. 이제 물 줄 꽃을 골라 주세요.</div>}
           <span className="pick-text">
             물 줄 꽃을 눌러 고르세요. <b>({picked.length} / {rain.max})</b>
             <br />
@@ -126,16 +127,18 @@ export default function Gallery() {
           </span>
           <div className="pick-actions">
             <button type="button" className="btn" onClick={() => { setPickMsg(""); cancelPick() }} disabled={committing}>
-              {pick?.kind === "draft" ? "글로 돌아가기" : "취소"}
+              {pick?.fresh ? "나중에 하기" : "취소"}
             </button>
             <button type="button" className="btn solid" onClick={() => { setPickMsg(""); commitPick() }} disabled={committing}>
               {committing ? "저장 중…" : "물주기 완료"}
             </button>
           </div>
-          {pick?.kind === "draft" && (
-            <span style={{ fontSize: 15, color: "var(--sub)" }}>[물주기 완료]를 누르면 방명록 글과 함께 저장됩니다.</span>
-          )}
           {pickMsg && <div className="msg err" style={{ width: "100%" }}>{pickMsg}</div>}
+          {result && !result.ok && !pickMsg && (
+            <div className="msg err" role="alert" style={{ width: "100%" }}>
+              {result.text}
+            </div>
+          )}
         </div>
       )}
       <div className={`grid${selecting ? " selecting" : ""}`}>

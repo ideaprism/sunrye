@@ -12,10 +12,12 @@ export default function EntryCard({
   entry,
   onUpdated,
   onDeleted,
+  finding = false,
 }: {
   entry: Entry
   onUpdated: (e: Entry) => void
   onDeleted: (id: string) => void
+  finding?: boolean // '내 글 찾기' 중일 때: 비밀번호로 내 글 확인 버튼을 보여 준다
 }) {
   const f = flowers.find((x) => x.id === entry.flower) ?? flowers[0]
   const [mode, setMode] = useState<Mode>("view")
@@ -24,7 +26,8 @@ export default function EntryCard({
   const [msg, setMsg] = useState(entry.message)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
-  const { remember, mine } = useGuestbook()
+  const { remember, myIds } = useGuestbook()
+  const isMine = myIds.includes(entry.id)
   const [claimed, setClaimed] = useState(false)
 
   const open = () => {
@@ -108,6 +111,7 @@ export default function EntryCard({
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0, flex: 1 }}>
           <div className="who">
             <span className="nm">{entry.name}</span>
+            {isMine && <span className="mine-badge">내 글</span>}
             <span className="dt">
               {formatDate(entry.created_at)}
               {entry.updated_at ? " · 고침" : ""}
@@ -117,20 +121,27 @@ export default function EntryCard({
         </div>
       </div>
 
-      {entry.has_pin && mode === "view" && (
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, flexWrap: "wrap" }}>
-          {mine?.id !== entry.id && (
-            <button type="button" className="link-btn" onClick={() => { open(); setMode("claim") }}>
-              이 글로 꽃에 물주기
-            </button>
-          )}
-          <button type="button" className="link-btn" onClick={open}>
-            내 글 고치기 · 지우기
+      {isMine && mode === "view" && entry.has_pin && (
+        <button type="button" className="link-btn" onClick={open}>
+          내 글 고치기 · 지우기
+        </button>
+      )}
+      {isMine && mode === "view" && !entry.has_pin && (
+        <span className="note" style={{ fontSize: 16, textAlign: "right" }}>
+          비밀번호 없이 남기셔서 고칠 수 없어요.
+        </span>
+      )}
+      {!isMine && finding && mode === "view" && (
+        entry.has_pin ? (
+          <button type="button" className="btn" onClick={() => { open(); setMode("claim") }}>
+            내 글이에요 (비밀번호 넣기)
           </button>
-        </div>
+        ) : (
+          <span className="note" style={{ fontSize: 16 }}>비밀번호 없이 남긴 글이라 고칠 수 없어요.</span>
+        )
       )}
       {claimed && mode === "view" && (
-        <div className="msg ok">이제 이 휴대폰에서 꽃에 물을 주실 수 있어요. 작품 목록 위 [마음에 드는 꽃에 물주기]를 눌러 보세요.</div>
+        <div className="msg ok">확인되었어요. 이제 이 휴대폰에서 이 글을 고치거나, 꽃에 물을 주실 수 있어요.</div>
       )}
 
       {mode !== "view" && (
@@ -171,7 +182,7 @@ export default function EntryCard({
           {mode === "claim" ? (
             <>
               <span style={{ fontSize: 16, color: "var(--sub)", lineHeight: 1.6 }}>
-                비밀번호를 넣으시면 이 휴대폰에서 이 글로 꽃에 물을 주실 수 있어요.
+                글을 남길 때 정한 비밀번호를 넣어 주세요. 확인되면 이 휴대폰에서 이 글을 고치거나 꽃에 물을 주실 수 있어요.
               </span>
               <div className="btn-row">
                 <button type="button" className="btn" onClick={close} disabled={busy}>
