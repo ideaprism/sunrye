@@ -1,56 +1,80 @@
 import "server-only"
-import { createHash } from "node:crypto"
+import { createHash, randomBytes } from "node:crypto"
+import { list, put } from "@vercel/blob"
+import { revalidateTag, unstable_cache } from "next/cache"
 import type { Entry } from "./guestbook-shared"
 
-const URL_ = process.env.SUPABASE_URL
-const KEY = process.env.SUPABASE_ANON_KEY
+// 방명록 글 1건 = Vercel Blob 파일 1개 (guestbook/<시각>-<무작위>.json)
+// 글 숨기기: Vercel 대시보드 > Storage > kimsunrye-guestbook 에서 해당 파일 삭제
+const PREFIX = "guestbook/"
+const TAG = "guestbook"
 
-export const guestbookReady = () => Boolean(URL_ && KEY)
+export const guestbookReady = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN)
 
-const headers = () => ({
-  apikey: KEY!,
-  Authorization: `Bearer ${KEY}`,
-  "Content-Type": "application/json",
-})
-
-export async function listEntries(limit = 1000): Promise<Entry[]> {
+async function loadAll(): Promise<Entry[]> {
   if (!guestbookReady()) return []
-  const q = new URLSearchParams({
-    select: "id,created_at,name,message,flower",
-    order: "created_at.desc",
-    limit: String(limit),
-  })
-  const r = await fetch(`${URL_}/rest/v1/guestbook?${q}`, { headers: headers(), cache: "no-store" })
-  if (!r.ok) throw new Error(`guestbook list ${r.status}`)
-  return r.json()
+  const blobs: { url: string; pathname: string }[] = []
+  let cursor: string | undefined
+  do {
+    const r = await list({ prefix: PREFIX, limit: 1000, cursor })
+    blobs.push(...r.blobs)
+    cursor = r.hasMore ? r.cursor : undefined
+  } while (cursor)
+
+  const rows = await Promise.all(
+    blobs.map(async (b) => {
+      try {
+        // 파일 내용은 바뀌지 않으므로 캐시해도 된다
+        const res = await fetch(b.url, { cache: "force-cache" })
+        if (!res.ok) return null
+        const d = await res.json()
+        return {
+          id: b.pathname.slice(PREFIX.length).replace(/\.json$/, ""),
+          created_at: String(d.created_at),
+          name: String(d.name),
+          message: String(d.message),
+          flower: String(d.flower),
+        } as Entry
+      } catch {
+        return null
+      }
+    }),
+  )
+  return rows.filter((x): x is Entry => x !== null).sort((a, b) => b.created_at.localeCompare(a.created_at))
+}
+
+// 목록 조회 횟수를 줄이기 위해 60초 캐시. 새 글이 올라오면 즉시 갱신
+const cachedAll = unstable_cache(loadAll, ["guestbook-all-v1"], { tags: [TAG], revalidate: 60 })
+
+export async function listEntries(): Promise<Entry[]> {
+  return cachedAll()
 }
 
 export function clientHash(ip: string, ua: string) {
-  return createHash("sha256")
-    .update(`${ip}|${ua}|${process.env.GUESTBOOK_SALT || "sunrye-2026"}`)
-    .digest("hex")
-    .slice(0, 32)
+  return createHash("sha256").update(`${ip}|${ua}`).digest("hex").slice(0, 32)
 }
 
+// 같은 사람이 30초 안에 다시 올리는 것을 막는다 (서버 인스턴스 메모리 기준)
+const recent = new Map<string, number>()
+let minuteWindow = { start: 0, count: 0 }
+
 export async function addEntry(input: { name: string; message: string; flower: string; client: string }) {
-  const r = await fetch(`${URL_}/rest/v1/rpc/add_guestbook_entry`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      p_name: input.name,
-      p_message: input.message,
-      p_flower: input.flower,
-      p_client: input.client,
-    }),
-    cache: "no-store",
-  })
-  const text = await r.text()
-  if (!r.ok) {
-    if (text.includes("rate_limited")) return { error: "rate_limited" as const }
-    if (text.includes("busy")) return { error: "busy" as const }
-    if (text.includes("invalid")) return { error: "invalid" as const }
-    throw new Error(`guestbook add ${r.status} ${text.slice(0, 200)}`)
-  }
-  const row = JSON.parse(text)
-  return { error: undefined, entry: (Array.isArray(row) ? row[0] : row) as Entry }
+  const now = Date.now()
+  for (const [k, t] of recent) if (now - t > 30_000) recent.delete(k)
+  if (recent.has(input.client)) return { error: "rate_limited" as const }
+  if (now - minuteWindow.start > 60_000) minuteWindow = { start: now, count: 0 }
+  if (minuteWindow.count >= 30) return { error: "busy" as const }
+  recent.set(input.client, now)
+  minuteWindow.count++
+
+  const created_at = new Date(now).toISOString()
+  const id = `${now}-${randomBytes(4).toString("hex")}`
+  await put(
+    `${PREFIX}${id}.json`,
+    JSON.stringify({ created_at, name: input.name, message: input.message, flower: input.flower }),
+    { access: "public", contentType: "application/json; charset=utf-8", addRandomSuffix: false, cacheControlMaxAge: 31536000 },
+  )
+  revalidateTag(TAG)
+  const entry: Entry = { id, created_at, name: input.name, message: input.message, flower: input.flower }
+  return { error: undefined, entry }
 }

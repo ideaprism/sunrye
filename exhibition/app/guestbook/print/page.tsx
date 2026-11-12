@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = { title: "방명록 인쇄용", robots: { index: false, follow: false } }
 
 export default async function PrintPage() {
-  let entries = await listEntries(5000).catch(() => [])
+  let entries = await listEntries().catch(() => [])
   entries = [...entries].reverse() // 인쇄본은 먼저 남긴 순서대로
   return (
     <main className="print-page">
