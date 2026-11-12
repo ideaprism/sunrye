@@ -11,6 +11,7 @@ import { PIN_RE } from "@/lib/guestbook-shared"
 
 const NAME_MAX = 20
 const MSG_MAX = 200
+const PAGE = 5 // 한 번에 보여 줄 글 수
 
 export default function Guestbook() {
   const [flower, setFlower] = useState<FlowerId>("peony")
@@ -20,6 +21,7 @@ export default function Guestbook() {
   const [hp, setHp] = useState("")
   const { entries, setEntries, loadError, reload, pick, startDraft, cancelPick, postEntry, result, setResult, postedSeq } = useGuestbook()
   const [sending, setSending] = useState(false)
+  const [shownCount, setShownCount] = useState(PAGE)
 
   // 저장이 끝나면 입력칸을 비운다
   useEffect(() => {
@@ -40,21 +42,61 @@ export default function Guestbook() {
     if (!canSend) return
     setSending(true)
     setResult(null)
-    setResult(await postEntry(draft(), []))
+    const r = await postEntry(draft(), [])
+    setResult(r)
     setSending(false)
+    if (r.ok) document.getElementById("guestbook")?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
     <section className="section" id="guestbook" aria-labelledby="gb-h" style={{ gap: 44 }}>
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 22, position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }} aria-live="polite">
+        <span className="eyebrow">방명록</span>
+        <h2 id="gb-h" className="h2">
+          남겨 주신 마음 {entries ? entries.length : "…"}개
+        </h2>
+        {result?.ok && !pick && (
+          <div className="msg ok" role="status">
+            {result.text}
+          </div>
+        )}
+        {loadError && (
+          <div className="msg err">
+            방명록을 불러오지 못했어요.{" "}
+            <button type="button" onClick={reload} style={{ all: "unset", textDecoration: "underline", cursor: "pointer" }}>
+              다시 불러오기
+            </button>
+          </div>
+        )}
+        {entries?.length === 0 && !loadError && <span className="note">아직 남겨 주신 글이 없어요. 첫 번째 마음을 남겨 주세요.</span>}
+        {entries?.slice(0, shownCount).map((e) => (
+          <EntryCard
+            key={e.id}
+            entry={e}
+            onUpdated={(u) => setEntries((list) => (list ?? []).map((x) => (x.id === u.id ? u : x)))}
+            onDeleted={(id) => setEntries((list) => (list ?? []).filter((x) => x.id !== id))}
+          />
+        ))}
+        {entries && entries.length > shownCount && (
+          <button type="button" className="btn" onClick={() => setShownCount((n) => n + PAGE)}>
+            지난 글 더 보기 ({Math.min(PAGE, entries.length - shownCount)}개 더 · 남은 글 {entries.length - shownCount}개)
+          </button>
+        )}
+        {entries && shownCount > PAGE && entries.length > PAGE && (
+          <button type="button" className="link-btn" style={{ alignSelf: "center" }} onClick={() => { setShownCount(PAGE); document.getElementById("guestbook")?.scrollIntoView() }}>
+            처음 {PAGE}개만 보기
+          </button>
+        )}
+        <span className="rain-guide">
+          <RainIcon size={40} /> {rain.guide}
+        </span>
+      </div>
+
+      <div className="divider" style={{ margin: 0 }} />
+
+      <form id="gb-form" onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 22, position: "relative" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span className="eyebrow">방명록</span>
-          <span className="rain-guide">
-            <RainIcon size={40} /> {rain.guide}
-          </span>
-          <h2 id="gb-h" className="h2">
-            축하 한마디 남기기
-          </h2>
+          <h2 className="h2">축하 한마디 남기기</h2>
           <span className="note">
             꽃을 하나 골라 마음을 남겨 주세요.
             <br />
@@ -161,6 +203,11 @@ export default function Guestbook() {
         >
           <WateringCan size={34} /> 저장하고 꽃에 물주러 가기
         </button>
+        {!canSend && !drafting && !sending && (
+          <span style={{ fontSize: 16, color: "var(--sub)", textAlign: "center", marginTop: -8 }}>
+            이름과 한마디를 적으시면 버튼을 누를 수 있어요.
+          </span>
+        )}
         <button type="submit" className="btn" disabled={!canSend}>
           {sending ? "남기는 중…" : "물주기 없이 글만 남기기"}
         </button>
@@ -179,33 +226,13 @@ export default function Guestbook() {
             </div>
           </div>
         )}
-        {result && !pick && (
-          <div className={`msg ${result.ok ? "ok" : "err"}`} role="status">
+        {result && !pick && !result.ok && (
+          <div className="msg err" role="status">
             {result.text}
           </div>
         )}
       </form>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }} aria-live="polite">
-        <span className="step">남겨 주신 마음 {entries ? entries.length : "…"}개</span>
-        {loadError && (
-          <div className="msg err">
-            방명록을 불러오지 못했어요.{" "}
-            <button type="button" onClick={reload} style={{ all: "unset", textDecoration: "underline", cursor: "pointer" }}>
-              다시 불러오기
-            </button>
-          </div>
-        )}
-        {entries?.length === 0 && !loadError && <span className="note">첫 번째 마음을 남겨 주세요.</span>}
-        {entries?.map((e) => (
-          <EntryCard
-            key={e.id}
-            entry={e}
-            onUpdated={(u) => setEntries((list) => (list ?? []).map((x) => (x.id === u.id ? u : x)))}
-            onDeleted={(id) => setEntries((list) => (list ?? []).filter((x) => x.id !== id))}
-          />
-        ))}
-      </div>
     </section>
   )
 }
