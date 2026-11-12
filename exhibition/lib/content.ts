@@ -112,11 +112,11 @@ const OIL = "캔버스에 유화"
 const WC = "수채화"
 
 // w, h: 이미지 픽셀 크기(레이아웃 흔들림 방지용). 2026-11-12 전시장 실물 사진(긴 변 1600px)으로 교체.
-// 12번은 전시장에서 추가로 확인한 작품. 번호는 물주기 기록과 연결되므로 기존 번호는 바꾸지 않는다.
+// 번호(no)는 물주기 기록과 연결되므로 바꾸지 않는다. 부귀영화 1·2·3은 전시장 명제표 기준.
 export const works: Work[] = [
-  { no: 1, file: "01_bugui_651x909", title: "부귀영화", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "65.1 × 90.9 cm", desc: "붉은 모란 꽃무리와 흐린 하늘", w: 1562, h: 1236 },
+  { no: 1, file: "01_bugui_651x909", title: "부귀영화 1", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "65.1 × 90.9 cm", desc: "붉은 모란 꽃무리와 흐린 하늘", w: 1562, h: 1236 },
   { no: 2, file: "02_haengbokgadeuk", title: "행복가득", year: "2025", medium: WC, mediumEn: "watercolor", size: "65.1 × 53 cm", desc: "흰 달항아리에 꽂힌 목련 가지", w: 1334, h: 1562 },
-  { no: 3, file: "03_bugui_53x45", title: "부귀영화", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "53 × 45 cm", desc: "진분홍 모란 다발", w: 1359, h: 1562 },
+  { no: 3, file: "03_bugui_53x45", title: "부귀영화 3", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "53 × 45 cm", desc: "진분홍 모란 다발", w: 1359, h: 1562 },
   { no: 4, file: "04_gaeulgil", title: "가을길", year: "2025", medium: WC, mediumEn: "watercolor", size: "90.9 × 72.7 cm", desc: "노랗게 물든 자작나무 숲", w: 1126, h: 1562 },
   { no: 5, file: "05_sarang", title: "사랑", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "72.7 × 60.6 cm", desc: "파란 하늘 아래 해바라기", w: 1139, h: 1562 },
   { no: 6, file: "06_sunsuhan_maeum", title: "순수한 마음", year: "2024", medium: WC, mediumEn: "watercolor", size: "72.7 × 60.6 cm", desc: "흰 모란 세 송이", w: 1562, h: 1557 },
@@ -124,8 +124,7 @@ export const works: Work[] = [
   { no: 8, file: "08_kkot_4gyejeol", title: "꽃의 4계절", year: "2025", medium: WC, mediumEn: "watercolor", size: "116.8 × 91 cm", desc: "사계절 꽃과 새, 웃는 아이들", w: 1233, h: 1562 },
   { no: 9, file: "09_hwanhui", title: "환희", year: "2025", medium: WC, mediumEn: "watercolor", size: "90.9 × 72.7 cm", desc: "해바라기와 장미, 수국이 어우러진 꽃밭", w: 1562, h: 1561 },
   { no: 10, file: "10_paran_haneul", title: "파란 하늘", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "45 × 53 cm", desc: "파란 하늘 아래 흰 모란", w: 1562, h: 1334 },
-  { no: 11, file: "11_bugui_45x53", title: "부귀영화", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "45 × 53 cm", desc: "짙은 붉은 모란", w: 1562, h: 1322 },
-  { no: 12, file: "12_bugui_white", title: "부귀영화", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "72.7 × 90.9 cm", desc: "파란 하늘 아래 활짝 핀 흰 모란 무리", w: 1562, h: 1263 },
+  { no: 11, file: "11_bugui_45x53", title: "부귀영화 2", year: "2026", medium: OIL, mediumEn: "oil on canvas", size: "45 × 53 cm", desc: "짙은 붉은 모란", w: 1562, h: 1322 },
 ]
 
 export const workSrc = (w: Work) => `/works/${w.file}.webp`
@@ -154,6 +153,6 @@ export const share = {
 export const rain = {
   showBaseline: true,
   max: 3,
-  baseline: { 1: 5, 2: 3, 3: 4, 4: 2, 5: 5, 6: 1, 7: 3, 8: 4, 9: 2, 10: 3, 11: 1, 12: 3 } as Record<number, number>,
+  baseline: { 1: 5, 2: 3, 3: 4, 4: 2, 5: 5, 6: 1, 7: 3, 8: 4, 9: 2, 10: 3, 11: 1 } as Record<number, number>,
   guide: "글을 남기시면 마음에 드는 꽃(작품)에 물을 주실 수 있으십니다. (최대 3개)",
 }
