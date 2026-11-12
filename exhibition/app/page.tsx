@@ -124,7 +124,7 @@ export default function Home() {
       <section className="section" id="artist" aria-labelledby="artist-h">
         <span className="eyebrow">작가 소개</span>
         <div className="artist-head">
-          <img className="artist-portrait" src="/artist-portrait.webp" alt={artist.photoAlt} width={260} height={330} loading="lazy" />
+          <img className="artist-portrait" src="/artist-portrait.webp" alt={artist.photoAlt} width={319} height={407} loading="lazy" />
           <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
             <h2 id="artist-h" className="artist-name" style={{ margin: 0 }}>
               {artist.nameKo}
