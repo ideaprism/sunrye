@@ -175,3 +175,7 @@ textarea.field { resize: none; }
 .peer { margin: 0 24px 24px; padding: 20px; border-radius: 16px; background: var(--white); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; text-decoration: none; color: var(--ink); }
 .peer img { width: 100%; height: auto; border-radius: 4px; }
 .peer .who { font-size: 22px; font-weight: 900; line-height: 1.4; }
+
+/* 작가 사진 + 이름 나란히 */
+.artist-head { display: flex; gap: 16px; align-items: center; }
+.artist-portrait { width: 132px; height: auto; flex-shrink: 0; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }

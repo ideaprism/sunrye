@@ -123,14 +123,16 @@ export default function Home() {
       {/* 작가 소개 */}
       <section className="section" id="artist" aria-labelledby="artist-h">
         <span className="eyebrow">작가 소개</span>
-        <img className="artist-photo" src={artist.photo} alt={artist.photoAlt} width={420} height={480} loading="lazy" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <h2 id="artist-h" className="artist-name" style={{ margin: 0 }}>
-            {artist.nameKo}
-          </h2>
-          <span style={{ fontSize: 17, fontWeight: 500, color: "var(--sub)" }}>{artist.nameEn}</span>
-          <span style={{ marginTop: 8, fontSize: 18, fontWeight: 800, color: "var(--red)", lineHeight: 1.5 }}>{artist.tagline}</span>
-          <span style={{ fontSize: 16, fontWeight: 500, color: "var(--sub)", lineHeight: 1.5 }}>{artist.role}</span>
+        <div className="artist-head">
+          <img className="artist-portrait" src="/artist-portrait.webp" alt={artist.photoAlt} width={260} height={330} loading="lazy" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+            <h2 id="artist-h" className="artist-name" style={{ margin: 0 }}>
+              {artist.nameKo}
+            </h2>
+            <span style={{ fontSize: 17, fontWeight: 500, color: "var(--sub)" }}>{artist.nameEn}</span>
+            <span style={{ marginTop: 8, fontSize: 18, fontWeight: 800, color: "var(--red)", lineHeight: 1.45 }}>{artist.tagline}</span>
+            <span style={{ marginTop: 4, fontSize: 16, fontWeight: 500, color: "var(--sub)", lineHeight: 1.45 }}>{artist.role}</span>
+          </div>
         </div>
         <p className="body">{artist.intro}</p>
         <div className="card">
