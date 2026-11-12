@@ -129,16 +129,16 @@ export type Work = {
 const ACR = "캔버스에 아크릴"
 const OIL = "캔버스에 유화"
 
-// 이미지는 브로셔 사진을 반듯하게 펴서 잘라 낸 것. 원본을 받으면 같은 파일명으로 교체한다.
+// 1~7번: 2026-11-12 전시장 실물 사진(긴 변 1600px). 8번 어울림: 브로셔 사진(고화질 사진 받으면 교체).
 // 크기 표기는 브로셔 그대로 (세로 × 가로)
 export const works: Work[] = [
-  { no: 1, file: "02_heenoaerak2", title: "희노애락 2", year: "2026", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "보랏빛 장미 무늬 속에 핀 붉은 장미 한 송이", w: 1560, h: 1294 },
-  { no: 2, file: "01_heenoaerak1", title: "희노애락 1", year: "2026", medium: ACR, mediumEn: "acrylic on canvas", size: "91 × 116.8 cm", desc: "여러 빛깔의 기하학적 면 한가운데 핀 붉은 장미", w: 1560, h: 1207 },
-  { no: 3, file: "03_heenoaerak3", title: "희노애락 3", year: "2025", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "청록과 보라 색면이 소용돌이치며 장미 모양을 이룸", w: 1560, h: 1294 },
-  { no: 4, file: "04_heenoaerak4", title: "희노애락 4", year: "2025", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "금빛과 보랏빛 조각이 겹겹이 모인 장미", w: 1560, h: 1294 },
-  { no: 5, file: "05_heenoaerak5", title: "희노애락 5", year: "2024", medium: ACR, mediumEn: "acrylic on canvas", size: "91 × 116.8 cm", desc: "푸른 색면이 깊이 빨려 들어가는 소용돌이", w: 1560, h: 1207 },
-  { no: 6, file: "06_sunflower1", title: "해바라기 1", year: "2024", medium: ACR, mediumEn: "acrylic on canvas", size: "53 × 72.7 cm", desc: "붉은 바탕의 큰 해바라기와 왼쪽의 작은 해바라기 세 송이", w: 1560, h: 1126 },
-  { no: 7, file: "07_sunflower2", title: "해바라기 2", year: "2024", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "양옆 해바라기 줄 사이에 활짝 핀 해바라기", w: 1560, h: 1294 },
+  { no: 1, file: "02_heenoaerak2", title: "희노애락 2", year: "2026", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "보랏빛 장미 무늬 속에 핀 붉은 장미 한 송이", w: 1568, h: 1301 },
+  { no: 2, file: "01_heenoaerak1", title: "희노애락 1", year: "2026", medium: ACR, mediumEn: "acrylic on canvas", size: "91 × 116.8 cm", desc: "여러 빛깔의 기하학적 면 한가운데 핀 붉은 장미", w: 1568, h: 1220 },
+  { no: 3, file: "03_heenoaerak3", title: "희노애락 3", year: "2025", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "청록과 보라 색면이 소용돌이치며 장미 모양을 이룸", w: 1568, h: 1304 },
+  { no: 4, file: "04_heenoaerak4", title: "희노애락 4", year: "2025", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "금빛과 보랏빛 조각이 겹겹이 모인 장미", w: 1568, h: 1288 },
+  { no: 5, file: "05_heenoaerak5", title: "희노애락 5", year: "2024", medium: ACR, mediumEn: "acrylic on canvas", size: "91 × 116.8 cm", desc: "푸른 색면이 깊이 빨려 들어가는 소용돌이", w: 1568, h: 1220 },
+  { no: 6, file: "06_sunflower1", title: "해바라기 1", year: "2024", medium: ACR, mediumEn: "acrylic on canvas", size: "53 × 72.7 cm", desc: "붉은 바탕의 큰 해바라기와 왼쪽의 작은 해바라기 세 송이", w: 1568, h: 1153 },
+  { no: 7, file: "07_sunflower2", title: "해바라기 2", year: "2024", medium: ACR, mediumEn: "acrylic on canvas", size: "60.6 × 72.7 cm", desc: "양옆 해바라기 줄 사이에 활짝 핀 해바라기", w: 1568, h: 1309 },
   { no: 8, file: "08_eoullim", title: "어울림", year: "2023", medium: OIL, mediumEn: "oil on canvas", size: "72.7 × 90.9 cm", desc: "산호와 열대어가 어울린 바닷속, 수면 위를 나는 날치", w: 1560, h: 1240 },
 ]
 
