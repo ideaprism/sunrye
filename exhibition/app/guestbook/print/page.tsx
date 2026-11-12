@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import FlowerIcon from "@/components/FlowerIcon"
 import PrintButton from "@/components/PrintButton"
-import { exhibition, flowers } from "@/lib/content"
+import { exhibition, flowers, works } from "@/lib/content"
 import { listEntries } from "@/lib/guestbook-server"
 import { formatDate } from "@/lib/guestbook-shared"
 
@@ -36,6 +36,22 @@ export default async function PrintPage() {
       <p className="sub">
         {exhibition.periodFull} · {exhibition.venueKo} · 남겨 주신 마음 {entries.length}개
       </p>
+      <h2 style={{ fontSize: 18, margin: "0 0 8px" }}>작품별 비 내리기 (방문자가 실제로 내린 수)</h2>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 24 }}>
+        <tbody>
+          {works.map((w) => (
+            <tr key={w.no} style={{ borderBottom: "1px solid #E2DBD1" }}>
+              <td style={{ padding: "4px 0", width: 32, color: "#5F5A55" }}>{w.no}</td>
+              <td style={{ padding: "4px 0" }}>
+                {w.title} <span style={{ color: "#5F5A55" }}>({w.year}, {w.size})</span>
+              </td>
+              <td style={{ padding: "4px 0", textAlign: "right", fontWeight: 800 }}>
+                {entries.reduce((n, e) => n + (e.rain.includes(w.no) ? 1 : 0), 0)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div className="print-list">
         {entries.map((e) => {
           const f = flowers.find((x) => x.id === e.flower) ?? flowers[0]

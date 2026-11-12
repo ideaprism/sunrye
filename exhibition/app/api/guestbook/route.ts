@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       } as const
       return NextResponse.json({ error: map[res.error] }, { status: 429 })
     }
-    return NextResponse.json({ entry: res.entry }, { status: 201 })
+    return NextResponse.json({ entry: res.entry, rainToken: res.rainToken }, { status: 201 })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: "저장하지 못했어요. 잠시 후 다시 눌러 주세요." }, { status: 502 })

@@ -1,10 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { flowers, type FlowerId } from "@/lib/content"
+import { useState } from "react"
+import { flowers, rain, type FlowerId } from "@/lib/content"
+import { useGuestbook } from "./GuestbookStore"
+import RainIcon from "./RainIcon"
 import FlowerIcon from "./FlowerIcon"
 import EntryCard from "./EntryCard"
-import { PIN_RE, type Entry } from "@/lib/guestbook-shared"
+import { PIN_RE } from "@/lib/guestbook-shared"
 
 const NAME_MAX = 20
 const MSG_MAX = 200
@@ -17,27 +19,10 @@ export default function Guestbook() {
   const [msg, setMsg] = useState("")
   const [pin, setPin] = useState("")
   const [hp, setHp] = useState("")
-  const [entries, setEntries] = useState<Entry[] | null>(null)
-  const [loadError, setLoadError] = useState(false)
+  const { entries, setEntries, loadError, reload, remember } = useGuestbook()
   const [sending, setSending] = useState(false)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
-
-  const load = async () => {
-    try {
-      const r = await fetch("/api/guestbook", { cache: "no-store" })
-      if (!r.ok) throw new Error()
-      const d = await r.json()
-      setEntries(d.entries)
-      setLoadError(false)
-    } catch {
-      setLoadError(true)
-      setEntries((e) => e ?? [])
-    }
-  }
-
-  useEffect(() => {
-    load()
-  }, [])
+  const [canRain, setCanRain] = useState(false)
 
   const pinOk = pin === "" || PIN_RE.test(pin)
   const canSend = name.trim().length > 0 && msg.trim().length > 0 && pinOk && !sending
@@ -71,6 +56,10 @@ export default function Guestbook() {
         localStorage.setItem(LS_KEY, String(Date.now()))
       } catch {}
       if (d.entry) setEntries((list) => [d.entry, ...(list ?? []).filter((x) => x.id !== d.entry.id)])
+      if (d.entry && d.rainToken) {
+        remember({ id: d.entry.id, token: d.rainToken })
+        setCanRain(true)
+      }
       setName("")
       setMsg("")
       setPin("")
@@ -194,6 +183,16 @@ export default function Guestbook() {
             {notice.text}
           </div>
         )}
+        {notice?.ok && canRain && (
+          <div className="rain-cta">
+            <span style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.6 }}>
+              이제 마음에 드는 작품 {rain.max}점에 비를 내려 주세요. <RainIcon />
+            </span>
+            <a className="btn solid" href="#works">
+              작품 보러 가기
+            </a>
+          </div>
+        )}
       </form>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }} aria-live="polite">
@@ -201,7 +200,7 @@ export default function Guestbook() {
         {loadError && (
           <div className="msg err">
             방명록을 불러오지 못했어요.{" "}
-            <button type="button" onClick={load} style={{ all: "unset", textDecoration: "underline", cursor: "pointer" }}>
+            <button type="button" onClick={reload} style={{ all: "unset", textDecoration: "underline", cursor: "pointer" }}>
               다시 불러오기
             </button>
           </div>

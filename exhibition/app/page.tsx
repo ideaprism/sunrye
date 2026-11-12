@@ -3,6 +3,7 @@ import Biography from "@/components/Biography"
 import Gallery from "@/components/Gallery"
 import Guestbook from "@/components/Guestbook"
 import Share from "@/components/Share"
+import GuestbookProvider from "@/components/GuestbookStore"
 import { siteUrl } from "@/lib/site"
 
 export default function Home() {
@@ -150,13 +151,15 @@ export default function Home() {
 
       <div className="divider" />
 
-      {/* 작품 */}
-      <Gallery />
+      <GuestbookProvider>
+        {/* 작품 */}
+        <Gallery />
 
-      <div className="divider" />
+        <div className="divider" />
 
-      {/* 방명록 */}
-      <Guestbook />
+        {/* 방명록 */}
+        <Guestbook />
+      </GuestbookProvider>
 
       {/* 공유 */}
       <Share url={siteUrl()} />

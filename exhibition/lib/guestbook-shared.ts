@@ -6,6 +6,7 @@ export type Entry = {
   message: string
   flower: string
   has_pin: boolean
+  rain: number[]
 }
 
 export const PIN_RE = /^\d{4}$/

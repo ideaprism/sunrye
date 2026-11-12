@@ -15,6 +15,7 @@ type Stored = {
   name: string
   message: string
   flower: string
+  rain?: number[] // 비를 내린 작품 번호 (최대 3개)
   pin?: string // HMAC(서버 비밀값, id:비밀번호). 비밀번호 원문은 저장하지 않는다
 }
 
@@ -34,6 +35,7 @@ const toEntry = (id: string, d: Stored): Entry => ({
   message: String(d.message),
   flower: String(d.flower),
   has_pin: Boolean(d.pin),
+  rain: Array.isArray(d.rain) ? d.rain.filter((n) => Number.isInteger(n)) : [],
 })
 
 async function readBlob(url: string, version: number, cache: RequestCache): Promise<Stored | null> {
@@ -110,7 +112,7 @@ export async function addEntry(input: { name: string; message: string; flower: s
   if (input.pin && pinReady()) data.pin = pinHash(id, input.pin)
   await write(id, data)
   revalidateTag(TAG)
-  return { error: undefined, entry: toEntry(id, data) }
+  return { error: undefined, entry: toEntry(id, data), rainToken: pinReady() ? rainToken(id) : undefined }
 }
 
 // 비밀번호 틀림 제한: 글 하나당 10분에 5번
@@ -158,4 +160,27 @@ export async function deleteEntry(id: string, pin: string) {
   await del(c.url)
   revalidateTag(TAG)
   return { error: undefined }
+}
+
+// 비 내리기: 글을 남긴 브라우저에만 주는 열쇠(rainToken)로 확인한다
+export const rainToken = (id: string) =>
+  createHmac("sha256", process.env.GUESTBOOK_SECRET!).update(`rain:${id}`).digest("hex").slice(0, 32)
+
+export async function setRain(id: string, token: string, works: number[]) {
+  if (!pinReady()) return { error: "not_ready" as const }
+  const a = Buffer.from(rainToken(id))
+  const b = Buffer.from(token)
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return { error: "bad_token" as const }
+  let meta
+  try {
+    meta = await head(pathOf(id))
+  } catch {
+    return { error: "not_found" as const }
+  }
+  const data = await readBlob(meta.url, Date.now(), "no-store")
+  if (!data) return { error: "not_found" as const }
+  const next: Stored = { ...data, rain: works }
+  await write(id, next)
+  revalidateTag(TAG)
+  return { error: undefined, entry: toEntry(id, next) }
 }

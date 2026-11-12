@@ -136,3 +136,12 @@ export const share = {
   description: "2026. 11. 10(화) – 17(화) · 갤러리 라온 (서울 종로구 인사동길 36, 3층)",
   text: "김선례 개인전 〈부귀영화〉에 초대합니다.\n2026. 11. 10(화) – 17(화) · 인사동 갤러리 라온",
 }
+
+// 비 내리기 (마음에 드는 작품 응원)
+// showBaseline: true 이면 '기본값 + 실제 수'를 보여 준다. 실제 수만 보이려면 false 로 바꾼다.
+export const rain = {
+  showBaseline: true,
+  max: 3,
+  baseline: { 1: 5, 2: 3, 3: 4, 4: 2, 5: 5, 6: 1, 7: 3, 8: 4, 9: 2, 10: 3, 11: 1 } as Record<number, number>,
+  guide: "글을 남기시면 마음에 드는 꽃(작품)에 비를 내려 주실 수 있으십니다. (최대 3개)",
+}

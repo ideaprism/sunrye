@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { works, workAlt, workSrc, workThumb } from "@/lib/content"
 import ZoomImage from "./ZoomImage"
+import RainButton, { RainBadge } from "./RainButton"
+import RainIcon from "./RainIcon"
+import { rain } from "@/lib/content"
 
 const hashFor = (i: number) => `#work-${i + 1}`
 const parseHash = () => {
@@ -73,6 +76,11 @@ export default function Gallery() {
     }
   }, [])
 
+  const goGuestbook = useCallback(() => {
+    close()
+    setTimeout(() => document.getElementById("guestbook")?.scrollIntoView({ behavior: "smooth" }), 150)
+  }, [close])
+
   useEffect(() => {
     if (idx === null) return
     const onKey = (e: KeyboardEvent) => {
@@ -94,6 +102,9 @@ export default function Gallery() {
           작품 {works.length}점
         </h2>
         <span className="note">작품을 누르면 크게 볼 수 있어요</span>
+        <span className="rain-guide">
+          <RainIcon /> {rain.guide}
+        </span>
       </div>
       <div className="grid">
         {works.map((w, i) => (
@@ -106,7 +117,9 @@ export default function Gallery() {
             onClick={() => open(i)}
           >
             <img src={workThumb(w)} alt={workAlt(w)} width={w.w} height={w.h} loading="lazy" decoding="async" />
-            <span className="t">{w.title}</span>
+            <span className="t">
+              {w.title} <RainBadge no={w.no} />
+            </span>
             <span className="m">
               {w.year} · {w.medium}
             </span>
@@ -138,7 +151,7 @@ export default function Gallery() {
                 {idx + 1} / {works.length}
               </span>
               <h2 id="viewer-title" className="vtitle">
-                {cur.title}
+                {cur.title} <RainBadge no={cur.no} big />
               </h2>
             </div>
             <dl className="kv" style={{ rowGap: 12 }}>
@@ -149,6 +162,7 @@ export default function Gallery() {
               <dt>크기</dt>
               <dd>{cur.size}</dd>
             </dl>
+            <RainButton no={cur.no} onGoGuestbook={goGuestbook} />
             <div className="btn-row">
               <button type="button" className="btn" onClick={() => go(idx - 1)}>
                 이전 작품
