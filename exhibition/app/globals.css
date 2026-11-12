@@ -125,3 +125,11 @@ textarea.field { resize: none; }
 .foot { padding: 32px 24px 48px; text-align: center; font-size: 14px; color: var(--sub-2); line-height: 1.6; }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Edit own entry */
+.link-btn { all: unset; cursor: pointer; align-self: flex-end; min-height: 44px; padding: 0 4px; font-size: 16px; font-weight: 700; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; }
+.link-btn:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+.edit-box { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.field.pin { max-width: 160px; font-size: 22px; letter-spacing: 0.3em; font-weight: 700; }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.solid-danger { background: var(--red); color: var(--white); }

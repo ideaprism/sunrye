@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { flowerIds } from "@/lib/content"
 import { addEntry, clientHash, guestbookReady, listEntries } from "@/lib/guestbook-server"
+import { PIN_RE } from "@/lib/guestbook-shared"
+import { strip } from "@/lib/text"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -14,8 +16,6 @@ export async function GET() {
     return NextResponse.json({ error: "load_failed" }, { status: 502 })
   }
 }
-
-const strip = (s: string) => s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim()
 
 export async function POST(req: Request) {
   if (!guestbookReady()) {
@@ -36,15 +36,17 @@ export async function POST(req: Request) {
   const name = strip(String(body.name ?? ""))
   const message = strip(String(body.message ?? "")).replace(/\n{3,}/g, "\n\n")
   const flower = String(body.flower ?? "")
+  const pin = String(body.pin ?? "")
   if (name.length < 1 || [...name].length > 20) return NextResponse.json({ error: "이름은 1~20자로 적어 주세요." }, { status: 400 })
   if (message.length < 1 || [...message].length > 200) return NextResponse.json({ error: "한마디는 1~200자로 적어 주세요." }, { status: 400 })
+  if (pin && !PIN_RE.test(pin)) return NextResponse.json({ error: "비밀번호는 숫자 4자리로 적어 주세요." }, { status: 400 })
   if (!flowerIds.includes(flower)) return NextResponse.json({ error: "꽃을 골라 주세요." }, { status: 400 })
 
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown"
   const ua = req.headers.get("user-agent") || ""
 
   try {
-    const res = await addEntry({ name, message, flower, client: clientHash(ip, ua) })
+    const res = await addEntry({ name, message, flower, pin, client: clientHash(ip, ua) })
     if (res.error) {
       const map = {
         rate_limited: "조금 전에 남겨 주셨어요. 30초 뒤에 다시 남겨 주세요.",

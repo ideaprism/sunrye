@@ -3,19 +3,19 @@
 import { useEffect, useState } from "react"
 import { flowers, type FlowerId } from "@/lib/content"
 import FlowerIcon from "./FlowerIcon"
-import { formatDate, type Entry } from "@/lib/guestbook-shared"
+import EntryCard from "./EntryCard"
+import { PIN_RE, type Entry } from "@/lib/guestbook-shared"
 
 const NAME_MAX = 20
 const MSG_MAX = 200
 const WAIT_MS = 30_000
 const LS_KEY = "gb-last"
 
-const flowerOf = (id: string) => flowers.find((f) => f.id === id) ?? flowers[0]
-
 export default function Guestbook() {
   const [flower, setFlower] = useState<FlowerId>("peony")
   const [name, setName] = useState("")
   const [msg, setMsg] = useState("")
+  const [pin, setPin] = useState("")
   const [hp, setHp] = useState("")
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -39,7 +39,8 @@ export default function Guestbook() {
     load()
   }, [])
 
-  const canSend = name.trim().length > 0 && msg.trim().length > 0 && !sending
+  const pinOk = pin === "" || PIN_RE.test(pin)
+  const canSend = name.trim().length > 0 && msg.trim().length > 0 && pinOk && !sending
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,7 +60,7 @@ export default function Guestbook() {
       const r = await fetch("/api/guestbook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), message: msg.trim(), flower, website: hp }),
+        body: JSON.stringify({ name: name.trim(), message: msg.trim(), flower, pin, website: hp }),
       })
       const d = await r.json().catch(() => ({}))
       if (!r.ok) {
@@ -72,7 +73,13 @@ export default function Guestbook() {
       if (d.entry) setEntries((list) => [d.entry, ...(list ?? []).filter((x) => x.id !== d.entry.id)])
       setName("")
       setMsg("")
-      setNotice({ ok: true, text: "고맙습니다. 마음이 잘 전해졌어요." })
+      setPin("")
+      setNotice({
+        ok: true,
+        text: pin
+          ? `고맙습니다. 마음이 잘 전해졌어요. 비밀번호 ${pin}을(를) 기억해 두시면 나중에 고치거나 지울 수 있어요.`
+          : "고맙습니다. 마음이 잘 전해졌어요.",
+      })
     } catch {
       setNotice({ ok: false, text: "인터넷 연결을 확인하고 다시 눌러 주세요." })
     } finally {
@@ -151,6 +158,26 @@ export default function Guestbook() {
           />
         </div>
 
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <label htmlFor="gb-pin" className="step">
+            4. 비밀번호 <span style={{ fontWeight: 500, color: "var(--sub-2)" }}>(선택)</span>
+          </label>
+          <span style={{ fontSize: 16, color: "var(--sub-2)", lineHeight: 1.6, marginTop: -4 }}>
+            숫자 4자리를 정해 두시면 나중에 내 글을 고치거나 지울 수 있어요.
+          </span>
+          <input
+            id="gb-pin"
+            className="field pin"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={4}
+            value={pin}
+            placeholder="예: 1234"
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          />
+          {!pinOk && <span style={{ fontSize: 16, color: "var(--red)", fontWeight: 700 }}>숫자 4자리를 모두 적어 주세요. 정하지 않으려면 비워 두세요.</span>}
+        </div>
+
         {/* 사람은 보지 못하는 칸. 자동 등록 프로그램만 채운다 */}
         <div className="hp" aria-hidden="true">
           <label htmlFor="gb-website">웹사이트</label>
@@ -178,21 +205,14 @@ export default function Guestbook() {
           </div>
         )}
         {entries?.length === 0 && !loadError && <span className="note">첫 번째 마음을 남겨 주세요.</span>}
-        {entries?.map((e) => {
-          const f = flowerOf(e.flower)
-          return (
-            <article key={e.id} className="entry">
-              <FlowerIcon petal={f.petal} core={f.core} />
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-                <div className="who">
-                  <span className="nm">{e.name}</span>
-                  <span className="dt">{formatDate(e.created_at)}</span>
-                </div>
-                <span className="tx">{e.message}</span>
-              </div>
-            </article>
-          )
-        })}
+        {entries?.map((e) => (
+          <EntryCard
+            key={e.id}
+            entry={e}
+            onUpdated={(u) => setEntries((list) => (list ?? []).map((x) => (x.id === u.id ? u : x)))}
+            onDeleted={(id) => setEntries((list) => (list ?? []).filter((x) => x.id !== id))}
+          />
+        ))}
       </div>
     </section>
   )
