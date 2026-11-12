@@ -163,3 +163,6 @@ textarea.field { resize: none; }
 .pick-text { font-size: 17px; line-height: 1.5; font-weight: 700; flex: 1; min-width: 180px; }
 .pick-done { width: auto; padding: 0 20px; }
 .btn.rain-start { border-color: #3a6ea8; color: #2c5785; background: #f3f7fb; }
+.pick-actions { display: flex; gap: 8px; }
+.pick-actions .btn { width: auto; padding: 0 16px; }
+.btn.water-btn { background: #3a6ea8; border-color: #3a6ea8; }

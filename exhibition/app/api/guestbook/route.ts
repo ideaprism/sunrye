@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { flowerIds } from "@/lib/content"
+import { flowerIds, rain, works } from "@/lib/content"
 import { addEntry, clientHash, getSettings, guestbookReady, listEntries } from "@/lib/guestbook-server"
 import { PIN_RE } from "@/lib/guestbook-shared"
 import { strip } from "@/lib/text"
@@ -37,6 +37,10 @@ export async function POST(req: Request) {
   const message = strip(String(body.message ?? "")).replace(/\n{3,}/g, "\n\n")
   const flower = String(body.flower ?? "")
   const pin = String(body.pin ?? "")
+  const rainList = [...new Set((Array.isArray(body.rain) ? (body.rain as unknown[]) : []).map((x) => Number(x)))].filter(
+    (n) => Number.isInteger(n) && n >= 1 && n <= works.length,
+  )
+  if (rainList.length > rain.max) return NextResponse.json({ error: `물은 ${rain.max}개 작품까지 주실 수 있어요.` }, { status: 400 })
   if (name.length < 1 || [...name].length > 20) return NextResponse.json({ error: "이름은 1~20자로 적어 주세요." }, { status: 400 })
   if (message.length < 1 || [...message].length > 200) return NextResponse.json({ error: "한마디는 1~200자로 적어 주세요." }, { status: 400 })
   if (pin && !PIN_RE.test(pin)) return NextResponse.json({ error: "비밀번호는 숫자 4자리로 적어 주세요." }, { status: 400 })
@@ -46,7 +50,7 @@ export async function POST(req: Request) {
   const ua = req.headers.get("user-agent") || ""
 
   try {
-    const res = await addEntry({ name, message, flower, pin, client: clientHash(ip, ua) })
+    const res = await addEntry({ name, message, flower, pin, rain: rainList, client: clientHash(ip, ua) })
     if (res.error) {
       const map = {
         rate_limited: "조금 전에 남겨 주셨어요. 30초 뒤에 다시 남겨 주세요.",

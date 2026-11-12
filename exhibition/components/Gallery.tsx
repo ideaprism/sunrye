@@ -17,23 +17,13 @@ const parseHash = () => {
 }
 
 export default function Gallery() {
-  const { mine, myRain, toggleRain, rainMode, setRainMode } = useGuestbook()
-  const [pending, setPending] = useState<number | null>(null)
+  const { mine, myRain, pick, picked, togglePick, startEdit, cancelPick, commitPick, committing } = useGuestbook()
   const [pickMsg, setPickMsg] = useState("")
-  const left = rain.max - myRain.length
-  const selecting = Boolean(mine) && rainMode
+  const selecting = pick !== null
+  const shownPicked = selecting ? picked : myRain
 
-  const pick = async (no: number) => {
-    if (pending !== null) return
-    setPickMsg("")
-    if (!myRain.includes(no) && left <= 0) {
-      setPickMsg(`비 ${rain.max}번을 모두 내리셨어요. 다른 작품에 내리시려면 먼저 고른 작품을 한 번 더 눌러 거두어 주세요.`)
-      return
-    }
-    setPending(no)
-    const err = await toggleRain(no)
-    if (err) setPickMsg(err)
-    setPending(null)
+  const tapPick = (no: number) => {
+    setPickMsg(togglePick(no) ?? "")
   }
   const [idx, setIdx] = useState<number | null>(null)
   const pushed = useRef(false)
@@ -123,20 +113,28 @@ export default function Gallery() {
         <span className="note">작품을 누르면 크게 볼 수 있어요</span>
       </div>
       {mine && !selecting && (
-        <button type="button" className="btn rain-start" onClick={() => setRainMode(true)}>
-          <WateringCan size={34} /> 마음에 드는 작품에 비 내리기 {left > 0 ? `(남은 비 ${left}번)` : ""}
+        <button type="button" className="btn rain-start" onClick={startEdit}>
+          <WateringCan size={34} /> {myRain.length ? "물 준 꽃 다시 고르기" : "마음에 드는 꽃에 물주기"}
         </button>
       )}
       {selecting && (
         <div className="pick-bar" role="status">
           <span className="pick-text">
-            마음에 드는 작품을 누르세요. <b>남은 비 {left}번</b>
+            물 줄 꽃을 눌러 고르세요. <b>({picked.length} / {rain.max})</b>
             <br />
-            <span style={{ fontSize: 15, fontWeight: 500 }}>한 번 더 누르면 거둘 수 있어요.</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>한 번 더 누르면 빠집니다.</span>
           </span>
-          <button type="button" className="btn solid pick-done" onClick={() => { setRainMode(false); setPickMsg("") }}>
-            다 했어요
-          </button>
+          <div className="pick-actions">
+            <button type="button" className="btn" onClick={() => { setPickMsg(""); cancelPick() }} disabled={committing}>
+              {pick?.kind === "draft" ? "글로 돌아가기" : "취소"}
+            </button>
+            <button type="button" className="btn solid" onClick={() => { setPickMsg(""); commitPick() }} disabled={committing}>
+              {committing ? "저장 중…" : "물주기 완료"}
+            </button>
+          </div>
+          {pick?.kind === "draft" && (
+            <span style={{ fontSize: 15, color: "var(--sub)" }}>[물주기 완료]를 누르면 방명록 글과 함께 저장됩니다.</span>
+          )}
           {pickMsg && <div className="msg err" style={{ width: "100%" }}>{pickMsg}</div>}
         </div>
       )}
@@ -147,13 +145,13 @@ export default function Gallery() {
             id={`work-card-${i}`}
             type="button"
             className="work-btn"
-            aria-label={selecting ? `${w.title} ${myRain.includes(w.no) ? "비 거두기" : "비 내리기"}` : `${w.title} 크게 보기`}
-            aria-pressed={selecting ? myRain.includes(w.no) : undefined}
-            onClick={() => (selecting ? pick(w.no) : open(i))}
+            aria-label={selecting ? `${w.title} ${picked.includes(w.no) ? "고르기 빼기" : "물주기 고르기"}` : `${w.title} 크게 보기`}
+            aria-pressed={selecting ? picked.includes(w.no) : undefined}
+            onClick={() => (selecting ? tapPick(w.no) : open(i))}
           >
-            <span className={`thumb${myRain.includes(w.no) ? " picked" : ""}${pending === w.no ? " pending" : ""}`}>
+            <span className={`thumb${shownPicked.includes(w.no) ? " picked" : ""}`}>
               <img src={workThumb(w)} alt={workAlt(w)} width={w.w} height={w.h} loading="lazy" decoding="async" />
-              {myRain.includes(w.no) ? (
+              {shownPicked.includes(w.no) ? (
                 <span className="pick-mark">
                   <WateringCan size={52} />
                 </span>

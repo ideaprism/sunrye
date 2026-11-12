@@ -39,7 +39,7 @@ export default async function PrintPage() {
       <p className="sub">
         {exhibition.periodFull} · {exhibition.venueKo} · 남겨 주신 마음 {entries.length}개
       </p>
-      <h2 style={{ fontSize: 18, margin: "0 0 8px" }}>작품별 비 내리기 (방문자가 실제로 내린 수)</h2>
+      <h2 style={{ fontSize: 18, margin: "0 0 8px" }}>작품별 꽃에 물주기 (방문자가 실제로 준 수)</h2>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 24 }}>
         <tbody>
           {works.map((w) => (

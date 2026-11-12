@@ -121,7 +121,7 @@ export default function EntryCard({
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, flexWrap: "wrap" }}>
           {mine?.id !== entry.id && (
             <button type="button" className="link-btn" onClick={() => { open(); setMode("claim") }}>
-              이 글로 비 내리기
+              이 글로 꽃에 물주기
             </button>
           )}
           <button type="button" className="link-btn" onClick={open}>
@@ -130,7 +130,7 @@ export default function EntryCard({
         </div>
       )}
       {claimed && mode === "view" && (
-        <div className="msg ok">이제 이 휴대폰에서 작품에 비를 내릴 수 있어요. 작품을 눌러 보세요.</div>
+        <div className="msg ok">이제 이 휴대폰에서 꽃에 물을 주실 수 있어요. 작품 목록 위 [마음에 드는 꽃에 물주기]를 눌러 보세요.</div>
       )}
 
       {mode !== "view" && (
@@ -171,7 +171,7 @@ export default function EntryCard({
           {mode === "claim" ? (
             <>
               <span style={{ fontSize: 16, color: "var(--sub)", lineHeight: 1.6 }}>
-                비밀번호를 넣으시면 이 휴대폰에서 이 글로 작품에 비를 내릴 수 있어요.
+                비밀번호를 넣으시면 이 휴대폰에서 이 글로 꽃에 물을 주실 수 있어요.
               </span>
               <div className="btn-row">
                 <button type="button" className="btn" onClick={close} disabled={busy}>

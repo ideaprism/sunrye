@@ -108,7 +108,7 @@ export default function AdminApp() {
       <div className="divider" />
 
       <section className="section" style={{ gap: 14 }}>
-        <h2 className="h2" style={{ fontSize: 22 }}>작품별 비 (실제 / 화면 표시)</h2>
+        <h2 className="h2" style={{ fontSize: 22 }}>작품별 꽃에 물주기 (실제 / 화면 표시)</h2>
         <label style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 17 }}>
           <input
             type="checkbox"
@@ -209,7 +209,7 @@ function AdminEntry({
           <div className="tx" style={{ fontSize: 16 }}>{entry.message}</div>
           <div style={{ fontSize: 14, color: "var(--sub)", marginTop: 4 }}>
             {entry.hidden ? "숨김 · " : ""}
-            비밀번호 {entry.has_pin ? "있음" : "없음"} · 비: {entry.rain.length ? entry.rain.map((n) => works[n - 1]?.title + `(${n})`).join(", ") : "없음"}
+            비밀번호 {entry.has_pin ? "있음" : "없음"} · 물주기: {entry.rain.length ? entry.rain.map((n) => works[n - 1]?.title + `(${n})`).join(", ") : "없음"}
           </div>
         </div>
       </div>
@@ -263,8 +263,8 @@ function AdminEntry({
             )}
           </div>
           {entry.rain.length > 0 && (
-            <button type="button" className="btn" disabled={busy} onClick={() => patch({ rain: [] }, "이 글의 비를 모두 거뒀어요.")}>
-              이 글의 비 모두 거두기
+            <button type="button" className="btn" disabled={busy} onClick={() => patch({ rain: [] }, "이 글의 물주기를 모두 거뒀어요.")}>
+              이 글의 물주기 모두 거두기
             </button>
           )}
         </div>

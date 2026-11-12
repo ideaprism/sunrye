@@ -40,7 +40,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     const nums = [...new Set((Array.isArray(b.rain) ? (b.rain as unknown[]) : []).map((x) => Number(x)))].filter(
       (n: number) => Number.isInteger(n) && n >= 1 && n <= works.length,
     )
-    if (nums.length > 3) return bad("비는 최대 3개")
+    if (nums.length > 3) return bad("물주기는 최대 3개")
     patch.rain = nums
   }
   const r = await adminUpdate(id, patch)

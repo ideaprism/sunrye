@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { flowers, rain, type FlowerId } from "@/lib/content"
+import WateringCan from "./WateringCan"
 import { useGuestbook } from "./GuestbookStore"
 import RainIcon from "./RainIcon"
 import FlowerIcon from "./FlowerIcon"
@@ -10,8 +11,6 @@ import { PIN_RE } from "@/lib/guestbook-shared"
 
 const NAME_MAX = 20
 const MSG_MAX = 200
-const WAIT_MS = 30_000
-const LS_KEY = "gb-last"
 
 export default function Guestbook() {
   const [flower, setFlower] = useState<FlowerId>("peony")
@@ -19,61 +18,30 @@ export default function Guestbook() {
   const [msg, setMsg] = useState("")
   const [pin, setPin] = useState("")
   const [hp, setHp] = useState("")
-  const { entries, setEntries, loadError, reload, remember, setRainMode } = useGuestbook()
+  const { entries, setEntries, loadError, reload, pick, startDraft, cancelPick, postEntry, result, setResult, postedSeq } = useGuestbook()
   const [sending, setSending] = useState(false)
-  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
-  const [canRain, setCanRain] = useState(false)
+
+  // 저장이 끝나면 입력칸을 비운다
+  useEffect(() => {
+    if (postedSeq === 0) return
+    setName("")
+    setMsg("")
+    setPin("")
+  }, [postedSeq])
 
   const pinOk = pin === "" || PIN_RE.test(pin)
-  const canSend = name.trim().length > 0 && msg.trim().length > 0 && pinOk && !sending
+  const drafting = pick?.kind === "draft"
+  const canSend = name.trim().length > 0 && msg.trim().length > 0 && pinOk && !sending && !drafting
+  const draft = () => ({ name: name.trim(), message: msg.trim(), flower, pin, website: hp })
 
+  // 글만 남기기
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSend) return
-    let last = 0
-    try {
-      last = Number(localStorage.getItem(LS_KEY) || 0)
-    } catch {}
-    const left = WAIT_MS - (Date.now() - last)
-    if (left > 0) {
-      setNotice({ ok: false, text: `잠시 후에 다시 남겨 주세요. (${Math.ceil(left / 1000)}초)` })
-      return
-    }
     setSending(true)
-    setNotice(null)
-    try {
-      const r = await fetch("/api/guestbook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), message: msg.trim(), flower, pin, website: hp }),
-      })
-      const d = await r.json().catch(() => ({}))
-      if (!r.ok) {
-        setNotice({ ok: false, text: d.error || "저장하지 못했어요. 잠시 후 다시 눌러 주세요." })
-        return
-      }
-      try {
-        localStorage.setItem(LS_KEY, String(Date.now()))
-      } catch {}
-      if (d.entry) setEntries((list) => [d.entry, ...(list ?? []).filter((x) => x.id !== d.entry.id)])
-      if (d.entry && d.rainToken) {
-        remember({ id: d.entry.id, token: d.rainToken })
-        setCanRain(true)
-      }
-      setName("")
-      setMsg("")
-      setPin("")
-      setNotice({
-        ok: true,
-        text: pin
-          ? `고맙습니다. 마음이 잘 전해졌어요. 비밀번호 ${pin}을(를) 기억해 두시면 나중에 고치거나 지울 수 있어요.`
-          : "고맙습니다. 마음이 잘 전해졌어요.",
-      })
-    } catch {
-      setNotice({ ok: false, text: "인터넷 연결을 확인하고 다시 눌러 주세요." })
-    } finally {
-      setSending(false)
-    }
+    setResult(null)
+    setResult(await postEntry(draft(), []))
+    setSending(false)
   }
 
   return (
@@ -106,6 +74,7 @@ export default function Guestbook() {
                 className="flower-btn"
                 aria-pressed={flower === f.id}
                 onClick={() => setFlower(f.id)}
+                disabled={drafting}
               >
                 <FlowerIcon petal={f.petal} core={f.core} />
                 <span>{f.name}</span>
@@ -120,6 +89,7 @@ export default function Guestbook() {
           </label>
           <input
             id="gb-name"
+            disabled={drafting}
             className="field"
             type="text"
             value={name}
@@ -141,6 +111,7 @@ export default function Guestbook() {
           </div>
           <textarea
             id="gb-msg"
+            disabled={drafting}
             className="field"
             rows={4}
             value={msg}
@@ -161,6 +132,7 @@ export default function Guestbook() {
           </span>
           <input
             id="gb-pin"
+            disabled={drafting}
             className="field pin"
             inputMode="numeric"
             autoComplete="off"
@@ -178,26 +150,38 @@ export default function Guestbook() {
           <input id="gb-website" tabIndex={-1} autoComplete="off" value={hp} onChange={(e) => setHp(e.target.value)} />
         </div>
 
-        <button type="submit" className="btn solid" disabled={!canSend}>
-          {sending ? "남기는 중…" : "마음 남기기"}
+        <button
+          type="button"
+          className="btn solid water-btn"
+          disabled={!canSend}
+          onClick={() => {
+            setResult(null)
+            startDraft(draft())
+          }}
+        >
+          <WateringCan size={34} /> 저장하고 꽃에 물주러 가기
         </button>
-        {notice && (
-          <div className={`msg ${notice.ok ? "ok" : "err"}`} role="status">
-            {notice.text}
+        <button type="submit" className="btn" disabled={!canSend}>
+          {sending ? "남기는 중…" : "물주기 없이 글만 남기기"}
+        </button>
+        {drafting && (
+          <div className="rain-cta">
+            <span style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.6 }}>
+              꽃을 고르는 중이에요. 작품 목록에서 꽃을 고르고 [물주기 완료]를 누르시면 글과 함께 저장됩니다.
+            </span>
+            <div className="btn-row">
+              <a className="btn solid" href="#works">
+                꽃 고르러 가기
+              </a>
+              <button type="button" className="btn" onClick={cancelPick}>
+                글 다시 고치기
+              </button>
+            </div>
           </div>
         )}
-        {notice?.ok && canRain && (
-          <div className="rain-cta">
-            <span style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.6 }}>
-              이제 마음에 드는 작품 {rain.max}점에 비를 내려 주세요. <RainIcon />
-            </span>
-            <a
-              className="btn solid"
-              href="#works"
-              onClick={() => setRainMode(true)}
-            >
-              작품 고르러 가기
-            </a>
+        {result && !pick && (
+          <div className={`msg ${result.ok ? "ok" : "err"}`} role="status">
+            {result.text}
           </div>
         )}
       </form>

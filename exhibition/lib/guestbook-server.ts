@@ -102,7 +102,7 @@ async function write(id: string, data: Stored) {
 const recent = new Map<string, number>()
 let minuteWindow = { start: 0, count: 0 }
 
-export async function addEntry(input: { name: string; message: string; flower: string; pin: string; client: string }) {
+export async function addEntry(input: { name: string; message: string; flower: string; pin: string; rain: number[]; client: string }) {
   const now = Date.now()
   for (const [k, t] of recent) if (now - t > 30_000) recent.delete(k)
   if (recent.has(input.client)) return { error: "rate_limited" as const }
@@ -118,6 +118,7 @@ export async function addEntry(input: { name: string; message: string; flower: s
     message: input.message,
     flower: input.flower,
   }
+  if (input.rain.length) data.rain = input.rain
   if (input.pin && pinReady()) data.pin = pinHash(id, input.pin)
   await write(id, data)
   revalidateTag(TAG)
