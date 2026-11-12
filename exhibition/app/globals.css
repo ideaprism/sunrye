@@ -149,3 +149,17 @@ textarea.field { resize: none; }
 .admin-table th, .admin-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; }
 .admin-table th { font-size: 14px; color: var(--sub); }
 .admin-table td:nth-child(3), .admin-table td:nth-child(4), .admin-table th:nth-child(3), .admin-table th:nth-child(4) { text-align: right; }
+
+/* 작품 고르기 (여러 장 선택) */
+.thumb { position: relative; display: block; line-height: 0; }
+.thumb img { transition: transform 0.15s ease, filter 0.15s ease; }
+.thumb.picked img { transform: scale(0.9); filter: brightness(0.92); }
+.thumb.picked { background: #dbe8f5; border-radius: 6px; }
+.thumb.pending { opacity: 0.6; }
+.pick-mark { position: absolute; top: -8px; right: -8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+.pick-empty { position: absolute; top: 6px; right: 6px; width: 40px; height: 40px; border-radius: 50%; border: 3px solid #fff; background: rgba(0,0,0,0.18); box-shadow: 0 1px 4px rgba(0,0,0,0.35); }
+.grid.selecting .work-btn { cursor: pointer; }
+.pick-bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 14px; margin: 0 -8px; border-radius: 14px; background: #eaf1f8; border: 2px solid #3a6ea8; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.pick-text { font-size: 17px; line-height: 1.5; font-weight: 700; flex: 1; min-width: 180px; }
+.pick-done { width: auto; padding: 0 20px; }
+.btn.rain-start { border-color: #3a6ea8; color: #2c5785; background: #f3f7fb; }

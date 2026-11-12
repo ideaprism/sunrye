@@ -19,7 +19,7 @@ export default function Guestbook() {
   const [msg, setMsg] = useState("")
   const [pin, setPin] = useState("")
   const [hp, setHp] = useState("")
-  const { entries, setEntries, loadError, reload, remember } = useGuestbook()
+  const { entries, setEntries, loadError, reload, remember, setRainMode } = useGuestbook()
   const [sending, setSending] = useState(false)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [canRain, setCanRain] = useState(false)
@@ -191,8 +191,12 @@ export default function Guestbook() {
             <span style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.6 }}>
               이제 마음에 드는 작품 {rain.max}점에 비를 내려 주세요. <RainIcon />
             </span>
-            <a className="btn solid" href="#works">
-              작품 보러 가기
+            <a
+              className="btn solid"
+              href="#works"
+              onClick={() => setRainMode(true)}
+            >
+              작품 고르러 가기
             </a>
           </div>
         )}

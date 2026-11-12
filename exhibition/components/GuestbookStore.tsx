@@ -17,6 +17,8 @@ type Store = {
   myRain: number[]
   rainCount: (no: number) => number
   toggleRain: (no: number) => Promise<string | null>
+  rainMode: boolean
+  setRainMode: (v: boolean) => void
 }
 
 const Ctx = createContext<Store | null>(null)
@@ -31,6 +33,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [mine, setMine] = useState<Mine | null>(null)
+  const [rainMode, setRainMode] = useState(false)
   const [settings, setSettings] = useState<Settings>({ showBaseline: rain.showBaseline })
 
   const reload = useCallback(async () => {
@@ -113,7 +116,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
   )
 
   return (
-    <Ctx.Provider value={{ entries, loadError, reload, setEntries, mine: myEntry ? mine : null, remember, myRain, rainCount, toggleRain }}>
+    <Ctx.Provider value={{ entries, loadError, reload, setEntries, mine: myEntry ? mine : null, remember, myRain, rainCount, toggleRain, rainMode, setRainMode }}>
       {children}
     </Ctx.Provider>
   )

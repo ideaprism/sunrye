@@ -4,6 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { works, workAlt, workSrc, workThumb } from "@/lib/content"
 import ZoomImage from "./ZoomImage"
 import RainButton, { RainBadge } from "./RainButton"
+import WateringCan from "./WateringCan"
+import { useGuestbook } from "./GuestbookStore"
+import { rain } from "@/lib/content"
 
 const hashFor = (i: number) => `#work-${i + 1}`
 const parseHash = () => {
@@ -14,6 +17,24 @@ const parseHash = () => {
 }
 
 export default function Gallery() {
+  const { mine, myRain, toggleRain, rainMode, setRainMode } = useGuestbook()
+  const [pending, setPending] = useState<number | null>(null)
+  const [pickMsg, setPickMsg] = useState("")
+  const left = rain.max - myRain.length
+  const selecting = Boolean(mine) && rainMode
+
+  const pick = async (no: number) => {
+    if (pending !== null) return
+    setPickMsg("")
+    if (!myRain.includes(no) && left <= 0) {
+      setPickMsg(`비 ${rain.max}번을 모두 내리셨어요. 다른 작품에 내리시려면 먼저 고른 작품을 한 번 더 눌러 거두어 주세요.`)
+      return
+    }
+    setPending(no)
+    const err = await toggleRain(no)
+    if (err) setPickMsg(err)
+    setPending(null)
+  }
   const [idx, setIdx] = useState<number | null>(null)
   const pushed = useRef(false)
   const lastOpened = useRef<number | null>(null)
@@ -101,17 +122,45 @@ export default function Gallery() {
         </h2>
         <span className="note">작품을 누르면 크게 볼 수 있어요</span>
       </div>
-      <div className="grid">
+      {mine && !selecting && (
+        <button type="button" className="btn rain-start" onClick={() => setRainMode(true)}>
+          <WateringCan size={34} /> 마음에 드는 작품에 비 내리기 {left > 0 ? `(남은 비 ${left}번)` : ""}
+        </button>
+      )}
+      {selecting && (
+        <div className="pick-bar" role="status">
+          <span className="pick-text">
+            마음에 드는 작품을 누르세요. <b>남은 비 {left}번</b>
+            <br />
+            <span style={{ fontSize: 15, fontWeight: 500 }}>한 번 더 누르면 거둘 수 있어요.</span>
+          </span>
+          <button type="button" className="btn solid pick-done" onClick={() => { setRainMode(false); setPickMsg("") }}>
+            다 했어요
+          </button>
+          {pickMsg && <div className="msg err" style={{ width: "100%" }}>{pickMsg}</div>}
+        </div>
+      )}
+      <div className={`grid${selecting ? " selecting" : ""}`}>
         {works.map((w, i) => (
           <button
             key={w.file}
             id={`work-card-${i}`}
             type="button"
             className="work-btn"
-            aria-label={`${w.title} 크게 보기`}
-            onClick={() => open(i)}
+            aria-label={selecting ? `${w.title} ${myRain.includes(w.no) ? "비 거두기" : "비 내리기"}` : `${w.title} 크게 보기`}
+            aria-pressed={selecting ? myRain.includes(w.no) : undefined}
+            onClick={() => (selecting ? pick(w.no) : open(i))}
           >
-            <img src={workThumb(w)} alt={workAlt(w)} width={w.w} height={w.h} loading="lazy" decoding="async" />
+            <span className={`thumb${myRain.includes(w.no) ? " picked" : ""}${pending === w.no ? " pending" : ""}`}>
+              <img src={workThumb(w)} alt={workAlt(w)} width={w.w} height={w.h} loading="lazy" decoding="async" />
+              {myRain.includes(w.no) ? (
+                <span className="pick-mark">
+                  <WateringCan size={52} />
+                </span>
+              ) : (
+                selecting && <span className="pick-empty" aria-hidden="true" />
+              )}
+            </span>
             <span className="t">
               {w.title} <RainBadge no={w.no} />
             </span>
