@@ -81,6 +81,9 @@ export default function Guestbook() {
       <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 22, position: "relative" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span className="eyebrow">방명록</span>
+          <span className="rain-guide">
+            <RainIcon size={40} /> {rain.guide}
+          </span>
           <h2 id="gb-h" className="h2">
             축하 한마디 남기기
           </h2>

@@ -11,7 +11,7 @@ export function RainBadge({ no, big = false }: { no: number; big?: boolean }) {
   if (n < 1) return null
   return (
     <span className={`rain-badge${big ? " big" : ""}`} aria-label={`비 ${n}번`}>
-      <RainIcon size={big ? 24 : 18} />
+      <RainIcon size={big ? 34 : 26} />
       {n}
     </span>
   )
@@ -36,7 +36,7 @@ export default function RainButton({ no, onGoGuestbook }: { no: number; onGoGues
     return (
       <div className="rain-box">
         <span className="rain-guide">
-          <RainIcon /> {rain.guide}
+          <RainIcon size={36} /> 방명록에 글을 남기시면 이 작품에 비를 내려 주실 수 있어요.
         </span>
         <button type="button" className="btn" onClick={onGoGuestbook}>
           방명록에 글 남기러 가기

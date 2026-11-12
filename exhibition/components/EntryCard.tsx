@@ -4,8 +4,9 @@ import { useState } from "react"
 import { flowers } from "@/lib/content"
 import { formatDate, PIN_RE, type Entry } from "@/lib/guestbook-shared"
 import FlowerIcon from "./FlowerIcon"
+import { useGuestbook } from "./GuestbookStore"
 
-type Mode = "view" | "edit" | "confirmDelete"
+type Mode = "view" | "edit" | "confirmDelete" | "claim"
 
 export default function EntryCard({
   entry,
@@ -23,6 +24,8 @@ export default function EntryCard({
   const [msg, setMsg] = useState(entry.message)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
+  const { remember, mine } = useGuestbook()
+  const [claimed, setClaimed] = useState(false)
 
   const open = () => {
     setName(entry.name)
@@ -58,10 +61,39 @@ export default function EntryCard({
       }
       if (method === "PATCH") {
         onUpdated(d.entry)
+        if (d.rainToken) remember({ id: entry.id, token: d.rainToken })
         close()
       } else {
         onDeleted(entry.id)
       }
+    } catch {
+      setErr("인터넷 연결을 확인하고 다시 눌러 주세요.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const claim = async () => {
+    if (!PIN_RE.test(pin)) {
+      setErr("글을 남길 때 정한 비밀번호 숫자 4자리를 적어 주세요.")
+      return
+    }
+    setBusy(true)
+    setErr("")
+    try {
+      const r = await fetch(`/api/guestbook/${entry.id}/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) {
+        setErr(d.error || "처리하지 못했어요.")
+        return
+      }
+      remember({ id: entry.id, token: d.rainToken })
+      setClaimed(true)
+      close()
     } catch {
       setErr("인터넷 연결을 확인하고 다시 눌러 주세요.")
     } finally {
@@ -86,9 +118,19 @@ export default function EntryCard({
       </div>
 
       {entry.has_pin && mode === "view" && (
-        <button type="button" className="link-btn" onClick={open}>
-          내 글 고치기 · 지우기
-        </button>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, flexWrap: "wrap" }}>
+          {mine?.id !== entry.id && (
+            <button type="button" className="link-btn" onClick={() => { open(); setMode("claim") }}>
+              이 글로 비 내리기
+            </button>
+          )}
+          <button type="button" className="link-btn" onClick={open}>
+            내 글 고치기 · 지우기
+          </button>
+        </div>
+      )}
+      {claimed && mode === "view" && (
+        <div className="msg ok">이제 이 휴대폰에서 작품에 비를 내릴 수 있어요. 작품을 눌러 보세요.</div>
       )}
 
       {mode !== "view" && (
@@ -126,7 +168,21 @@ export default function EntryCard({
               {err}
             </div>
           )}
-          {mode === "edit" ? (
+          {mode === "claim" ? (
+            <>
+              <span style={{ fontSize: 16, color: "var(--sub)", lineHeight: 1.6 }}>
+                비밀번호를 넣으시면 이 휴대폰에서 이 글로 작품에 비를 내릴 수 있어요.
+              </span>
+              <div className="btn-row">
+                <button type="button" className="btn" onClick={close} disabled={busy}>
+                  취소
+                </button>
+                <button type="button" className="btn solid" onClick={claim} disabled={busy}>
+                  {busy ? "확인 중…" : "확인"}
+                </button>
+              </div>
+            </>
+          ) : mode === "edit" ? (
             <>
               <button type="button" className="btn solid" disabled={busy || !name.trim() || !msg.trim()} onClick={() => call("PATCH")}>
                 {busy ? "고치는 중…" : "고친 내용 저장"}

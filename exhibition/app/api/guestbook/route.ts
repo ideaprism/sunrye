@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { flowerIds } from "@/lib/content"
-import { addEntry, clientHash, guestbookReady, listEntries } from "@/lib/guestbook-server"
+import { addEntry, clientHash, getSettings, guestbookReady, listEntries } from "@/lib/guestbook-server"
 import { PIN_RE } from "@/lib/guestbook-shared"
 import { strip } from "@/lib/text"
 
@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const entries = await listEntries()
-    return NextResponse.json({ entries, ready: guestbookReady() }, { headers: { "Cache-Control": "no-store" } })
+    const [entries, settings] = await Promise.all([listEntries(), getSettings()])
+    return NextResponse.json({ entries, settings, ready: guestbookReady() }, { headers: { "Cache-Control": "no-store" } })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: "load_failed" }, { status: 502 })

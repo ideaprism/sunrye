@@ -3,12 +3,15 @@ import FlowerIcon from "@/components/FlowerIcon"
 import PrintButton from "@/components/PrintButton"
 import { exhibition, flowers, works } from "@/lib/content"
 import { listEntries } from "@/lib/guestbook-server"
+import { isAdmin } from "@/lib/admin-auth"
+import { redirect } from "next/navigation"
 import { formatDate } from "@/lib/guestbook-shared"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = { title: "방명록 인쇄용", robots: { index: false, follow: false } }
 
 export default async function PrintPage() {
+  if (!(await isAdmin())) redirect("/admin")
   let entries = await listEntries().catch(() => [])
   entries = [...entries].reverse() // 인쇄본은 먼저 남긴 순서대로
   return (

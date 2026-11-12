@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { works, workAlt, workSrc, workThumb } from "@/lib/content"
 import ZoomImage from "./ZoomImage"
 import RainButton, { RainBadge } from "./RainButton"
-import RainIcon from "./RainIcon"
-import { rain } from "@/lib/content"
 
 const hashFor = (i: number) => `#work-${i + 1}`
 const parseHash = () => {
@@ -102,9 +100,6 @@ export default function Gallery() {
           작품 {works.length}점
         </h2>
         <span className="note">작품을 누르면 크게 볼 수 있어요</span>
-        <span className="rain-guide">
-          <RainIcon /> {rain.guide}
-        </span>
       </div>
       <div className="grid">
         {works.map((w, i) => (

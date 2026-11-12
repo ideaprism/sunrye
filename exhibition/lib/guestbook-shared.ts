@@ -7,7 +7,10 @@ export type Entry = {
   flower: string
   has_pin: boolean
   rain: number[]
+  hidden?: boolean
 }
+
+export type Settings = { showBaseline: boolean }
 
 export const PIN_RE = /^\d{4}$/
 export const ID_RE = /^\d{13}-[0-9a-f]{8}$/

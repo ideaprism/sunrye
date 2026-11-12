@@ -2,10 +2,11 @@ import "server-only"
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto"
 import { del, head, list, put } from "@vercel/blob"
 import { revalidateTag, unstable_cache } from "next/cache"
-import type { Entry } from "./guestbook-shared"
+import { rain as rainConfig } from "./content"
+import type { Entry, Settings } from "./guestbook-shared"
 
 // 방명록 글 1건 = Vercel Blob 파일 1개 (guestbook/<시각>-<무작위>.json)
-// 배포와 무관하게 저장 공간에 남는다. 관리자 숨기기: Vercel 대시보드 > Storage 에서 파일 삭제
+// 배포와 무관하게 저장 공간에 남는다. 관리는 /admin 화면에서 한다
 const PREFIX = "guestbook/"
 const TAG = "guestbook"
 
@@ -15,6 +16,7 @@ type Stored = {
   name: string
   message: string
   flower: string
+  hidden?: boolean // 관리자가 숨긴 글
   rain?: number[] // 비를 내린 작품 번호 (최대 3개)
   pin?: string // HMAC(서버 비밀값, id:비밀번호). 비밀번호 원문은 저장하지 않는다
 }
@@ -36,6 +38,7 @@ const toEntry = (id: string, d: Stored): Entry => ({
   flower: String(d.flower),
   has_pin: Boolean(d.pin),
   rain: Array.isArray(d.rain) ? d.rain.filter((n) => Number.isInteger(n)) : [],
+  hidden: Boolean(d.hidden),
 })
 
 async function readBlob(url: string, version: number, cache: RequestCache): Promise<Stored | null> {
@@ -71,8 +74,14 @@ async function loadAll(): Promise<Entry[]> {
 // 목록 조회 횟수를 줄이기 위해 60초 캐시. 글이 바뀌면 즉시 갱신
 const cachedAll = unstable_cache(loadAll, ["guestbook-all-v2"], { tags: [TAG], revalidate: 60 })
 
+// 방문자용: 숨긴 글 제외
 export async function listEntries(): Promise<Entry[]> {
-  return cachedAll()
+  return (await cachedAll()).filter((e) => !e.hidden).map(({ hidden: _h, ...e }) => e)
+}
+
+// 관리자용: 전부 (캐시 없이)
+export async function listAllForAdmin(): Promise<Entry[]> {
+  return loadAll()
 }
 
 export function clientHash(ip: string, ua: string) {
@@ -121,6 +130,16 @@ const failures = new Map<string, { n: number; since: number }>()
 type Check =
   | { ok: true; url: string; data: Stored }
   | { ok: false; error: "not_found" | "no_pin" | "wrong_pin" | "locked" }
+
+async function readById(id: string) {
+  try {
+    const meta = await head(pathOf(id))
+    const data = await readBlob(meta.url, Date.now(), "no-store")
+    return data ? { url: meta.url, data } : null
+  } catch {
+    return null
+  }
+}
 
 async function checkPin(id: string, pin: string): Promise<Check> {
   const f = failures.get(id)
@@ -183,4 +202,70 @@ export async function setRain(id: string, token: string, works: number[]) {
   await write(id, next)
   revalidateTag(TAG)
   return { error: undefined, entry: toEntry(id, next) }
+}
+
+// 비밀번호로 이 기기에 비 내리기 권한 받기 (다른 폰에서도 가능)
+export async function claimRain(id: string, pin: string) {
+  const c = await checkPin(id, pin)
+  if (!c.ok) return { error: c.error }
+  return { error: undefined, rainToken: rainToken(id) }
+}
+
+// ---- 설정 (관리자 화면에서 바꾼다) ----
+const SETTINGS_PATH = "config/settings.json"
+const SETTINGS_TAG = "settings"
+
+async function loadSettings(): Promise<Settings> {
+  const base: Settings = { showBaseline: rainConfig.showBaseline }
+  if (!guestbookReady()) return base
+  try {
+    const meta = await head(SETTINGS_PATH)
+    const res = await fetch(`${meta.url}?v=${new Date(meta.uploadedAt).getTime()}`, { cache: "force-cache" })
+    if (!res.ok) return base
+    return { ...base, ...(await res.json()) }
+  } catch {
+    return base
+  }
+}
+
+const cachedSettings = unstable_cache(loadSettings, ["settings-v1"], { tags: [SETTINGS_TAG], revalidate: 300 })
+export const getSettings = () => cachedSettings()
+
+export async function saveSettings(s: Settings) {
+  await put(SETTINGS_PATH, JSON.stringify(s), {
+    access: "public",
+    contentType: "application/json; charset=utf-8",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    cacheControlMaxAge: 60,
+  })
+  revalidateTag(SETTINGS_TAG)
+}
+
+// ---- 관리자 작업 ----
+export async function adminUpdate(
+  id: string,
+  patch: { name?: string; message?: string; flower?: string; hidden?: boolean; pin?: string | null; rain?: number[] },
+) {
+  const cur = await readById(id)
+  if (!cur) return { error: "not_found" as const }
+  const next: Stored = { ...cur.data }
+  if (patch.name !== undefined) next.name = patch.name
+  if (patch.message !== undefined) next.message = patch.message
+  if (patch.flower !== undefined) next.flower = patch.flower
+  if (patch.hidden !== undefined) next.hidden = patch.hidden
+  if (patch.rain !== undefined) next.rain = patch.rain
+  if (patch.pin === null) delete next.pin
+  else if (typeof patch.pin === "string") next.pin = pinHash(id, patch.pin)
+  await write(id, next)
+  revalidateTag(TAG)
+  return { error: undefined, entry: toEntry(id, next) }
+}
+
+export async function adminDelete(id: string) {
+  const cur = await readById(id)
+  if (!cur) return { error: "not_found" as const }
+  await del(cur.url)
+  revalidateTag(TAG)
+  return { error: undefined }
 }

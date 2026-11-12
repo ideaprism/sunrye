@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { deleteEntry, guestbookReady, updateEntry } from "@/lib/guestbook-server"
+import { deleteEntry, guestbookReady, rainToken, updateEntry } from "@/lib/guestbook-server"
 import { ID_RE, PIN_RE } from "@/lib/guestbook-shared"
 import { cleanMessage, strip } from "@/lib/text"
 
@@ -38,7 +38,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   try {
     const r = await updateEntry(p.id, p.pin, { name, message })
     if (r.error) return fail(r.error)
-    return NextResponse.json({ entry: r.entry })
+    return NextResponse.json({ entry: r.entry, rainToken: rainToken(p.id) })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: "고치지 못했어요. 잠시 후 다시 눌러 주세요." }, { status: 502 })

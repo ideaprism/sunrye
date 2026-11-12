@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { rain, works } from "@/lib/content"
-import type { Entry } from "@/lib/guestbook-shared"
+import type { Entry, Settings } from "@/lib/guestbook-shared"
 
 const MINE_KEY = "gb-mine"
 type Mine = { id: string; token: string }
@@ -31,6 +31,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [mine, setMine] = useState<Mine | null>(null)
+  const [settings, setSettings] = useState<Settings>({ showBaseline: rain.showBaseline })
 
   const reload = useCallback(async () => {
     try {
@@ -38,6 +39,7 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
       if (!r.ok) throw new Error()
       const d = await r.json()
       setEntries(d.entries)
+      if (d.settings) setSettings(d.settings)
       setLoadError(false)
     } catch {
       setLoadError(true)
@@ -75,10 +77,10 @@ export default function GuestbookProvider({ children }: { children: React.ReactN
 
   const counts = useMemo(() => {
     const c: Record<number, number> = {}
-    for (const w of works) c[w.no] = rain.showBaseline ? rain.baseline[w.no] ?? 0 : 0
+    for (const w of works) c[w.no] = settings.showBaseline ? rain.baseline[w.no] ?? 0 : 0
     for (const e of entries ?? []) for (const n of e.rain) if (c[n] !== undefined) c[n]++
     return c
-  }, [entries])
+  }, [entries, settings])
 
   const rainCount = useCallback((no: number) => counts[no] ?? 0, [counts])
 

@@ -135,11 +135,17 @@ textarea.field { resize: none; }
 .btn.solid-danger { background: var(--red); color: var(--white); }
 
 /* Rain */
-.rain-guide { display: block; font-size: 17px; line-height: 1.65; color: var(--ink-2); background: #eaf1f8; border-radius: 12px; padding: 12px 14px; font-weight: 500; }
-.rain-badge { display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 800; color: #3a6ea8; white-space: nowrap; vertical-align: 0.05em; margin-left: 2px; }
+.rain-guide { display: flex; align-items: center; gap: 10px; font-size: 17px; line-height: 1.65; color: var(--ink-2); background: #eaf1f8; border-radius: 12px; padding: 12px 14px; font-weight: 500; }
+.rain-badge { display: inline-flex; align-items: center; gap: 1px; font-size: 15px; font-weight: 800; color: #3a6ea8; white-space: nowrap; vertical-align: 0.05em; margin-left: 2px; }
 .rain-badge.big { font-size: 20px; gap: 4px; margin-left: 6px; }
 .rain-box { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; background: #f3f7fb; border: 1px solid #d7e2ee; }
 .btn.rain-btn { background: #3a6ea8; border-color: #3a6ea8; }
 .btn.rain-on, .btn.rain-on:disabled { background: #eaf1f8; border-color: #3a6ea8; color: #2c5785; cursor: default; }
 .rain-left { font-size: 16px; color: var(--sub); text-align: center; line-height: 1.5; }
 .rain-cta { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #eaf1f8; }
+
+/* Admin */
+.admin-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.admin-table th, .admin-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+.admin-table th { font-size: 14px; color: var(--sub); }
+.admin-table td:nth-child(3), .admin-table td:nth-child(4), .admin-table th:nth-child(3), .admin-table th:nth-child(4) { text-align: right; }
