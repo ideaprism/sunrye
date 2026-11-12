@@ -175,3 +175,7 @@ textarea.field { resize: none; }
 .peer { margin: 0 24px 24px; padding: 20px; border-radius: 16px; background: var(--white); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; text-decoration: none; color: var(--ink); }
 .peer img { width: 100%; height: auto; border-radius: 4px; }
 .peer .who { font-size: 22px; font-weight: 900; line-height: 1.4; }
+
+/* 저작권 표시 */
+.copy-note { font-size: 14px; color: var(--sub-2); text-align: center; margin-top: -14px; }
+.stage img, .work-btn img { -webkit-touch-callout: none; }

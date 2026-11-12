@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { works, workAlt, workSrc, workThumb } from "@/lib/content"
+import { exhibition, works, workAlt, workSrc, workThumb } from "@/lib/content"
 import ZoomImage from "./ZoomImage"
 import RainButton, { RainBadge } from "./RainButton"
 import WateringCan from "./WateringCan"
@@ -191,6 +191,7 @@ export default function Gallery() {
               onSwipeRight={() => go(idx - 1)}
             />
             <span className="zoom-hint">두 손가락으로 벌리면 확대됩니다</span>
+            <span className="copy-note">© {exhibition.artistKo} · 작품 이미지의 무단 복제·배포를 금합니다</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <span className="counter">
                 {idx + 1} / {works.length}

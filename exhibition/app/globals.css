@@ -179,3 +179,7 @@ textarea.field { resize: none; }
 /* 작가 사진 + 이름 나란히 */
 .artist-head { display: flex; gap: 16px; align-items: center; }
 .artist-portrait { width: 132px; height: auto; flex-shrink: 0; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+/* 저작권 표시 */
+.copy-note { font-size: 14px; color: var(--sub-2); text-align: center; margin-top: -14px; }
+.stage img, .work-btn img { -webkit-touch-callout: none; }

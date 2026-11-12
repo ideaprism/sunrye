@@ -175,7 +175,7 @@ export default function ZoomImage({
         apply()
       }}
     >
-      <img ref={img} src={src} alt={alt} width={width} height={height} draggable={false} />
+      <img ref={img} src={src} alt={alt} width={width} height={height} draggable={false} onContextMenu={(e) => e.preventDefault()} />
       {zoomed && (
         <button type="button" className="reset" onClick={reset} onPointerDown={(e) => e.stopPropagation()}>
           원래 크기로
