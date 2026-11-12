@@ -163,7 +163,9 @@ export default function Guestbook() {
             4. 비밀번호 <span style={{ fontWeight: 500, color: "var(--sub-2)" }}>(선택)</span>
           </label>
           <span style={{ fontSize: 16, color: "var(--sub-2)", lineHeight: 1.6, marginTop: -4 }}>
-            숫자 4자리를 정해 두시면 나중에 내 글을 고치거나 지울 수 있어요.
+            방문자님께서 작성하신 글을 수정/삭제 하는 용도 입니다.
+            <br />
+            전화번호 뒷자리와 같은 간단한 번호를 사용하실 것을 권유 드립니다.
           </span>
           <input
             id="gb-pin"
