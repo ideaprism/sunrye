@@ -153,7 +153,7 @@ export default function Gallery() {
             onClick={() => (selecting ? tapPick(w.no) : open(i))}
           >
             <span className={`thumb${shownPicked.includes(w.no) ? " picked" : ""}`}>
-              <img src={workThumb(w)} alt={workAlt(w)} width={w.w} height={w.h} loading="lazy" decoding="async" />
+              <img src={workThumb(w)} alt={workAlt(w)} width={w.w} height={w.h} loading="lazy" decoding="async" draggable={false} onContextMenu={(e) => e.preventDefault()} />
               {shownPicked.includes(w.no) ? (
                 <span className="pick-mark">
                   <WateringCan size={52} />
