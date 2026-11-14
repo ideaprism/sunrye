@@ -1,56 +1,87 @@
-# 김선례 작가 갤러리 홍보영상 — 「물뿌리개 스티커, 정원이 피어나다」 (15초)
+# 김선례 작가 갤러리 영상: 물조리개 스티커 하나로 갤러리가 정원이 된다 (15초)
 
-> 대상: https://kimsunrye.vercel.app/ (소스 저장소 `ideaprism/sunrye`의 작품 데이터·이미지 기준으로 작성)
-> 작성일: 2026-11-14
+> 대상: https://kimsunrye.vercel.app/
+> 사용 작품: 업로드한 신작 11점 (2024–2026)
+> 작성일: 2026-11-14 (v2, 업로드 작품 기준으로 전면 교체)
 
 ## 0. 결론
 
 | 항목 | 결정 |
 |---|---|
-| 주인공 작품 | **「장미들의 향기로운 합창」** (수채화, 80×100cm) — 화면 전체가 꽃이라 "그림 → 실제 정원" 전환이 가장 자연스러움 |
-| 예비 작품 | 「분홍 진달래의 연가」 — 원래 풍경화(연못+정원)라 공간 확장형 연출에 유리 |
-| 화면비 | **16:9** 권장 (주인공 작품이 가로 1.67:1). 쇼츠(9:16)로 갈 거면 세로 작품 「햇살을 품은 해바라기의 미소」로 교체 |
-| 제작 방식 | 15초 단일 생성이 안 되는 툴이면 **5초 × 3컷** 분할 생성 후 편집으로 연결 |
-| 톤 | 수채화의 번짐 → 실사 꽃으로 "물들듯이" 전환. 폭발·마법 이펙트 금지 |
+| 스티커를 붙일 작품 | **09 「환희」(2025)**. 온갖 꽃과 나비가 있어서 나비가 그림 밖으로 날아오르는 첫 장면을 만들 수 있음 |
+| 시점 | **관람객 1인칭(POV)**. 화면 밖에서 손만 들어와 스티커를 붙임. 줌아웃해도 사람 얼굴이나 몸을 만들 필요가 없어 AI가 망칠 부분이 줄어듦 |
+| 화면비 | 16:9 (세로 9:16은 그림이 너무 작아져서 제외) |
+| 제작 방식 | **3컷을 이어 붙임.** 컷마다 첫 프레임과 끝 프레임을 지정해서 원화가 바뀌지 않게 붙잡아 둠 |
+| 전시장 | AI로 생성하지 않고 **11점 원화를 원근에 맞춰 벽에 직접 합성** (그림 픽셀이 그대로 유지됨) |
 
 ---
 
-## 1. 에셋 목록
+## 1. 에셋 (생성 완료)
 
-| # | 에셋 | 소스 | 비고 |
-|---|---|---|---|
-| A1 | 주인공 작품 사진 | `public/images/rose-garden.jpg` (2780×1668) | 액자 포함 촬영본. 그대로 벽에 걸린 컷으로 사용 |
-| A2 | 예비 작품 | `public/images/azalea-pond.jpg` (2544×1784) | |
-| A3 | 세로형 대안 | `public/images/sunflower-window.jpg` (1796×2412) | 9:16용 |
-| A4 | 벽면 보조 작품 (좌·우에 걸 그림) | `white-peonies.jpg`, `pink-peony.jpg`, `yellow-roses.jpg`, `white-magnolia.jpg` | 실제 작가 작품으로 벽을 채워야 "김선례 전시"로 보임 |
-| A5 | 전시장 배경 | **생성 필요** (저장소에 전시장 사진 없음) — §2 프롬프트 | 실제 전시장 사진이 있으면 그걸 우선 사용 |
-| A6 | 물뿌리개 스티커 | **생성 필요** — §3 프롬프트 | 투명 배경 PNG |
-| A7 | 엔드카드 | 직접 제작 | 「김선례 작가 · 꽃을 마음으로 그리는 수채화가」 + `kimsunrye.vercel.app` / 사이트 메인색 핑크 `#EC4899`, 보조 그린 |
+| 파일 | 용도 | 비고 |
+|---|---|---|
+| `assets/frame_A_close.jpg` (3840×2160) | **Shot 1 첫 프레임**. 「환희」 클로즈업 | 좌우에 부귀영화1·2 일부 |
+| `assets/frame_B_mid.jpg` (3840×2160) | Shot 2 중간 확인용 (정면 벽 5점) | |
+| `assets/frame_C_wide.jpg` (3840×2160) | **Shot 2 끝 프레임이자 Shot 3 첫 프레임**. 전시장 전체 | 11점 모두 보임 |
+| `assets/zoomout_guide_5s.mp4` (1080p, 5초) | 줌아웃 동선 가이드 | A에서 C까지 실제 카메라 동선. 영상 참조(모션 레퍼런스) 입력용이고, 편집할 때 타이밍 기준으로도 씀 |
+| `tools/render_gallery.py` | 위 이미지와 영상을 만든 스크립트 | 작품 배치를 바꿔 다시 만들 때 사용 |
+| (생성 필요) frame_D_garden | **Shot 3 끝 프레임**. 정원으로 바뀐 갤러리 | §3 프롬프트로 생성 |
+| (생성 필요) 물조리개 스티커 | 실촬영용 인쇄물, 또는 참조 이미지 | §4 프롬프트로 생성 |
 
-**제작 순서:** A5 전시장 생성 → A1을 벽에 합성(참조 이미지 편집) → 원화 왜곡 여부 확인 → 이 이미지를 영상 첫 프레임으로 사용
+### 작품 배치 (frame_C 기준)
+
+| 벽 | 왼쪽 → 오른쪽 |
+|---|---|
+| 왼쪽 벽 | 05 사랑(해바라기) · 06 순수한마음(흰 모란) · 02 행복가득(달항아리 목련) |
+| **정면 벽** | 03 부귀영화3 · 01 부귀영화1 · **09 환희 ★** · 11 부귀영화2 · 07 행복(분홍 모란) |
+| 오른쪽 벽 | 04 가을길(자작나무) · 08 꽃의4계절 · 10 파란하늘(흰 모란) |
 
 ---
 
-## 2. 전시장 이미지 프롬프트 (A5)
+## 2. 15초 콘티
 
-**한 줄 요약:** 따뜻한 조명의 소규모 화이트큐브 갤러리, 정면 벽 중앙에 장미 수채화 1점, 좌우에 꽃 수채화, 관람객 1명 뒷모습.
+| 시간 | 컷 | 화면 | 카메라 | 사운드 |
+|---|---|---|---|---|
+| 0–4초 | **Shot 1** 스티커 | 「환희」 클로즈업. 오른쪽 아래에서 손이 들어와 액자 모서리에 물조리개 스티커를 "톡" 붙임. 스티커 주둥이에서 물방울이 떨어져 그림에 스며들자 물감이 번지고, 그림 속 나비 3마리가 날갯짓을 시작함 | 고정에 가깝게, 아주 느린 푸시인 | 피아노 단음, 스티커 "톡", 물방울 "또르르" |
+| 4–9초 | **Shot 2** 줌아웃 + 깨어남 | 나비가 그림 밖으로 날아오르고 카메라가 뒤로 빠짐. 가운데에서 바깥쪽으로 물결처럼 **작품이 하나씩 차례로 살아남** (아래 표) | 부드러운 줌아웃 (가이드 영상과 같은 동선) | 첼로·하프 진입, 작품마다 하프 음 하나씩 |
+| 9–13.5초 | **Shot 3** 정원 | 꽃과 덩굴이 액자 밖으로 흘러나와 벽과 바닥을 덮음. 흰 벽은 수채 물감이 씻겨 나가듯 사라지고, 바닥은 잔디, 천장은 파란 하늘로 바뀜. 갤러리 전체가 만개한 정원이 됨 | 고정 또는 아주 느린 상승 | 현악 크레셴도, 새소리, 바람 |
+| 13.5–15초 | 엔드카드 (편집) | 정원 위에 문구: 「김선례 · 꽃을 마음으로 그리는 수채화가」 + `kimsunrye.vercel.app` | 고정 | 피아노로 돌아와 마무리 |
+
+### 작품별로 살아나는 방식 (Shot 2·3 프롬프트에 그대로 사용)
+
+| 작품 | 움직임 |
+|---|---|
+| 09 환희 ★ | 나비가 그림 밖으로 날아오르고, 꽃밭 전체가 바람에 일렁임 |
+| 01·11·03 부귀영화 1·2·3 | 붉은 모란 봉오리가 차례로 열리고, 잎이 흔들림 |
+| 07 행복 | 분홍 모란이 숨 쉬듯 부풀며 만개함 |
+| 06 순수한마음 | 흰 모란 꽃잎이 한 겹씩 펼쳐짐 |
+| 10 파란하늘 | 흰 모란 봉오리가 터지고 하늘의 구름이 흐름 |
+| 05 사랑 | 해바라기가 빛 쪽으로 고개를 돌림 |
+| 02 행복가득 | 달항아리에서 목련 가지가 자라나며 흰 목련이 핌 |
+| 04 가을길 | 자작나무의 금빛 잎이 그림 밖으로 흩날림 |
+| 08 꽃의4계절 | 사계절 꽃이 차례로 번지듯 피어남 |
+
+---
+
+## 3. 정원 끝 프레임 이미지 프롬프트 (frame_D_garden)
+
+이미지 편집 AI에 **`frame_C_wide.jpg`를 참조 이미지로** 넣고 생성. 정원 구성은 각 작품 요소를 모아 배치함: 가운데는 환희의 꽃밭, 좌우는 모란 화단, 뒤쪽은 자작나무 숲과 파란 하늘, 그리고 달항아리와 목련.
 
 ```
-A small, intimate contemporary art gallery in Seoul, white walls, warm light-oak wooden floor,
-soft track spotlights from the ceiling. On the center of the front wall hangs one large framed
-watercolor painting of pink roses in a light wooden frame (use the reference image exactly,
-do not repaint it). Smaller framed watercolor paintings of peonies and magnolias hang on the
-side walls. A single visitor in a beige coat stands in front of the painting, seen from behind,
-holding a small round sticker. Calm, quiet afternoon atmosphere, photorealistic, 35mm lens,
-eye level, shallow depth of field, 16:9.
+Transform this art gallery into a real, lush garden in full bloom, keeping exactly the same camera
+position, perspective and horizon line. The white walls and ceiling dissolve into an open blue sky
+with soft clouds. The wooden floor becomes a soft green lawn with a gentle stone path leading to the
+center. In the center, where the main painting was, a vibrant mixed flowerbed of sunflowers, red
+poppies, pink roses, purple hydrangeas, daisies and blue anemones, with butterflies flying. On the
+left and right, abundant beds of deep magenta, pink and white tree peonies. On the far left,
+sunflowers facing the sun and a white Korean moon jar with a blooming white magnolia branch. In the
+background, a grove of white birch trees with golden autumn leaves. Warm spring sunlight,
+photorealistic, rich but natural colors, 16:9.
 ```
-
-- 참조 이미지: A1(`rose-garden.jpg`) 필수 첨부. 좌우 벽은 A4 첨부.
-- 주의: 실제 「인사동 한국미술관」 간판·로고는 넣지 말 것(무단 상표 사용 리스크).
 
 ---
 
-## 3. 물뿌리개 스티커 프롬프트 (A6)
+## 4. 물조리개 스티커 프롬프트
 
 ```
 A cute die-cut sticker of a small watering can, soft mint-green can with a pink flower decal,
@@ -58,56 +89,55 @@ three tiny water droplets falling from the spout, thick white sticker border,
 flat illustration with subtle watercolor texture, transparent background, centered, no text.
 ```
 
-- 실제 촬영(실물 스티커 + 손 클로즈업)을 섞을 계획이면 이 PNG를 인쇄해서 쓰면 됨.
-
 ---
 
-## 4. 15초 콘티
+## 5. 영상 생성 프롬프트 (3컷, 이미지에서 영상으로)
 
-| 시간 | 컷 | 화면 | 카메라 | 사운드 |
-|---|---|---|---|---|
-| 0–3초 | ① 도입 | 조용한 전시장, 관람객이 장미 그림 앞에 섬 | 느린 달리인 | 피아노 단음, 실내 앰비언스 |
-| 3–5초 | ② 스티커 | 손 클로즈업: 물뿌리개 스티커를 액자 모서리에 "톡" 붙임 | 클로즈업 고정 | 스티커 "톡" + 물방울 "또르르" |
-| 5–8초 | ③ 깨어남 | 스티커에서 물방울이 그림 위로 번짐 → 물감이 촉촉해지며 장미 꽃잎이 실제로 움직이고 봉오리가 열림 | 그림으로 푸시인 | 현악 진입, 하프 글리산도 |
-| 8–12초 | ④ 정원 확장 | 꽃이 액자 밖으로 흘러넘쳐 벽·바닥을 타고 퍼짐 → 전시장 전체가 실사 장미 정원으로 변함, 꽃잎이 흩날림 | 풀아웃 + 살짝 상승 | 풀 오케스트라 고조, 새소리 |
-| 12–15초 | ⑤ 엔드 | 정원 한가운데 관람객이 미소. 페이드 → 엔드카드 | 고정 | 피아노로 회귀하며 마무리 |
-
----
-
-## 5. 영상 생성 프롬프트
-
-### 5-1. 15초 단일 프롬프트 (이미지→영상, 첫 프레임 = §2 결과물)
-
+### Shot 1 (0–4초)
+- **첫 프레임:** `frame_A_close.jpg`  /  **끝 프레임:** 지정 안 함
 ```
-Image-to-video, 15 seconds, 16:9, photorealistic, cinematic, gentle pacing.
-A quiet, warmly lit art gallery. A visitor stands before a large framed watercolor painting of
-pink roses. Close-up: the visitor's hand presses a small mint-green watering-can sticker onto
-the corner of the frame. Tiny water droplets drip from the sticker's spout onto the painting.
-Where the water touches, the watercolor softly blooms and becomes wet and alive: painted rose
-petals begin to sway, buds slowly unfurl, and the painted flowers turn into real, three-dimensional
-pink roses. The roses spill gently out of the frame, climbing the white walls and spreading
-across the wooden floor, until the whole gallery transforms into a lush real rose garden in full
-bloom, soft sunlight streaming in, petals drifting in the air. The visitor looks around in wonder
-and smiles. Camera: slow dolly-in, close-up on the sticker, push into the painting, then a slow
-pull-back and slight crane up to reveal the garden. Transitions feel like watercolor pigment
-spreading on wet paper, not magic sparks. Keep the original painting's composition and colors
-faithful at the start.
+First-person view in a quiet, warmly lit art gallery, looking at a framed watercolor painting
+full of colorful flowers and butterflies. A visitor's hand enters from the lower right and gently
+presses a small mint-green watering-can sticker onto the lower-right corner of the wooden frame.
+Tiny water droplets drip from the sticker's spout onto the painting; where they touch, the
+watercolor softly blooms like pigment on wet paper. The painted flowers begin to sway and the
+painted butterflies start flapping their wings. Very slow push-in, photorealistic, calm.
+The painting's composition and colors stay exactly the same.
 ```
 
-### 5-2. 3컷 분할 (툴이 5초 단위일 때)
-
-| 컷 | 첫 프레임 | 프롬프트 |
-|---|---|---|
-| Shot A (0–5초) | §2 전시장 이미지 | `Slow dolly-in toward a framed pink rose watercolor in a quiet gallery. A visitor's hand enters and presses a small mint-green watering-can sticker onto the frame corner. Tiny water droplets fall from the sticker onto the painting. Photorealistic, warm light, calm.` |
-| Shot B (5–10초) | Shot A 마지막 프레임 | `Extreme close-up of the watercolor roses. Where water droplets land, pigment blooms like wet watercolor and the painted roses come alive: petals sway, buds unfurl, painted flowers become real three-dimensional roses that begin to spill out over the frame. Slow push-in, soft natural light.` |
-| Shot C (10–15초) | Shot B 마지막 프레임 (가능하면 끝 프레임에 "장미 정원이 된 전시장" 이미지 지정) | `Slow pull-back and gentle crane up: real roses flow across the white gallery walls and floor until the entire gallery becomes a lush rose garden in full bloom, sunlight streaming in, petals drifting. The visitor stands in the middle, turning around with a soft smile. Cinematic, photorealistic.` |
-
-### 5-3. 네거티브 프롬프트 (지원하는 툴만)
-
+### Shot 2 (4–9초)
+- **첫 프레임:** Shot 1의 마지막 프레임 (없으면 `frame_A_close.jpg`)  /  **끝 프레임:** `frame_C_wide.jpg`
+- 모션 레퍼런스를 받는 툴이면 `zoomout_guide_5s.mp4`도 함께 입력
 ```
-sparkles, glitter, magic particles, explosion, fire, neon glow, cartoon, anime, text, watermark,
-logo, distorted hands, extra fingers, warped frame, melting faces, fast cuts, shaky camera
+Smooth, continuous camera zoom-out from the flower painting to reveal the whole gallery.
+Butterflies fly out of the painting into the room. As the camera pulls back, a wave of life
+spreads from the center painting outward, one artwork after another: red peony buds open,
+a pink peony swells into full bloom, white peony petals unfold, sunflowers turn toward the light,
+a magnolia branch grows from a white moon jar and blossoms, golden birch leaves drift out of their
+frame, and seasonal flowers spread like watercolor. Each painting keeps its own composition and
+style; only the flowers move. Photorealistic gallery, warm light, gentle and magical but natural.
 ```
+
+### Shot 3 (9–15초)
+- **첫 프레임:** `frame_C_wide.jpg`  /  **끝 프레임:** `frame_D_garden` (§3에서 생성)
+```
+Flowers, vines and petals spill out of every painting frame, flowing across the white walls and
+the wooden floor. The walls wash away like watercolor dissolving in water, revealing open blue sky;
+the floor turns into green lawn; peonies, sunflowers, roses and hydrangeas bloom everywhere;
+a birch grove with golden leaves appears in the distance; butterflies and petals drift in warm
+sunlight. The whole gallery becomes a lush garden in full bloom. Static camera with a very slow
+rise, cinematic, photorealistic.
+```
+
+### 네거티브 프롬프트 (지원하는 툴만)
+```
+sparkles, glitter, magic particles, glowing light beams, explosion, fire, neon, cartoon, anime,
+text, watermark, logo, distorted hands, extra fingers, warped frames, repainted artworks,
+changed painting composition, people's faces, fast cuts, shaky camera
+```
+
+### (참고) 15초를 한 번에 만드는 프롬프트
+첫 프레임만 지정하는 방식이라서, **줌아웃할 때 나머지 10점을 AI가 마음대로 그려 넣게 됨.** 원화 전시 영상으로는 쓸 수 없으니 분위기만 미리 보는 용도로 쓸 것.
 
 ---
 
@@ -115,39 +145,41 @@ logo, distorted hands, extra fingers, warped frame, melting faces, fast cuts, sh
 
 | 항목 | 내용 |
 |---|---|
-| 분위기 | 고요한 설렘 → 경이로움. "피어난다"는 느낌의 따뜻한 상승형 |
-| 장르 | 네오클래식 / 시네마틱 어쿠스틱 (피아노 + 현악 + 하프) |
-| 템포 | 70–80 BPM, 장조 (D 또는 F major) |
-| 구조 | 0–5초 피아노 단음 아르페지오 / 5–8초 첼로·하프 진입 / 8–12초 현악 풀 크레셴도 + 첼레스타 반짝임 / 12–15초 피아노 단독으로 잔향 마무리 |
-| 효과음 | 스티커 "톡"(3초), 물방울 "또르르"(4초), 꽃봉오리 열리는 미세한 바스락(6–8초), 새소리·바람(9초~) |
-| 피할 것 | EDM 드롭, 트레일러식 붐(boom), 가사 있는 보컬 — 70대 작가의 수채화 정서와 충돌 |
+| 분위기 | 고요한 설렘 → 작품이 하나씩 깨어나는 경이로움 → 정원이 완성되는 벅참 |
+| 장르 | 네오클래식, 시네마틱 어쿠스틱 (피아노 + 현악 + 하프 + 첼레스타) |
+| 템포·조성 | 75 BPM, F major |
+| 구조 | 0–4초 피아노 아르페지오 / 4–9초 첼로와 하프 진입, **작품이 깨어날 때마다 하프·첼레스타 음 하나씩** / 9–13.5초 현악 풀 크레셴도 / 13.5–15초 피아노 단독으로 잔향 |
+| 효과음 | 스티커 "톡"(2초), 물방울(3초), 나비 날갯짓(4초), 꽃봉오리가 열리는 바스락 소리(5–9초), 새소리와 바람(10초부터) |
+| 한국적 색채 (선택) | 「부귀영화」 모란과 달항아리가 중심이므로, 4–9초 구간에 **가야금 뜯는 소리**를 하프 대신 쓰면 정체성이 살아남. 9초 이후는 현악 위주 |
+| 피할 것 | EDM 드롭, 트레일러식 붐(boom), 보컬 |
 
 **음악 생성 AI용 프롬프트**
-
 ```
-Instrumental, 15 seconds, neoclassical cinematic, 75 BPM, F major. Starts with a soft, intimate
-solo piano arpeggio, then warm cello and harp enter, building to a gentle, uplifting string
-swell with celesta sparkles, like flowers blooming in spring sunlight. Ends softly on solo piano.
-Hopeful, tender, wonder. No vocals, no drums.
+Instrumental, 15 seconds, neoclassical cinematic, 75 BPM, F major. Opens with a soft solo piano
+arpeggio; at 4 seconds warm cello enters with delicate plucked notes (harp or gayageum) appearing
+one by one like flowers waking up; at 9 seconds strings swell into a hopeful, blooming crescendo
+with celesta sparkles; ends softly on solo piano. Tender, wonder, spring garden. No vocals, no drums.
 ```
 
 ---
 
 ## 7. 리스크와 대응 (직설)
 
-| 리스크 | 왜 문제인가 | 대응 |
+| 리스크 | 심각도 | 대응 |
 |---|---|---|
-| **원화 왜곡** | 영상 AI가 첫 프레임부터 그림을 "다시 그려" 작가 화풍이 사라짐. 작가 홍보영상에서 가장 치명적 | 0–5초는 움직임 최소화, 원화는 이미지 편집 단계에서 합성해 고정. 결과물에서 원화와 다르면 그 컷은 실제 사진 슬라이드로 대체 |
-| **손·스티커 붕괴** | 손가락 개수, 스티커 모양이 프레임마다 변형되기 쉬움 | 스티커 붙이는 3초는 실제 촬영(폰으로 손+스티커 클로즈업)이 가장 확실 |
-| **전시장 사실성** | 저장소에 실제 전시장 사진이 없음 → 생성 공간은 "아무 갤러리"로 보임 | 2025 인사동 개인전 현장 사진이 있으면 그걸 첫 프레임으로 쓰는 게 신뢰도 훨씬 높음 |
-| **"마법" 과잉** | 반짝이·파티클이 들어가면 싸구려 광고 느낌 | 전환을 "젖은 종이에 물감 번짐"으로 명시(프롬프트 반영됨) |
-| **15초 길이** | 툴마다 1회 생성 길이가 다름 | 5초×3컷 분할 + 컷 경계를 "마지막 프레임 → 다음 첫 프레임"으로 이어 붙이기 |
-| **음원 저작권** | 기성곡 사용 시 SNS 업로드 차단 가능 | AI 생성 음원 또는 로열티프리 사용, 생성 툴의 상업 이용 약관 확인 |
+| **원화 왜곡**: 영상 AI가 움직임을 넣는 과정에서 그림을 다시 그림 | 최상 | 컷마다 첫·끝 프레임으로 고정함. 「부귀영화」 3점은 서로 비슷해서 AI가 섞어버리기 쉬우니 결과를 반드시 원화와 비교할 것 |
+| **줌아웃 중 작품 뭉개짐**: 5초 동안 11점을 모두 움직이라고 하면 프레임이 무너짐 | 상 | 움직임을 정면 벽 5점에 집중하고 옆 벽은 미세하게만. 실패하면 **가이드 영상(원화 고정) 위에 나비와 꽃잎 효과만 편집으로 얹는** 방식으로 전환 |
+| **손과 스티커 변형** | 중 | Shot 1의 손은 휴대폰으로 실제 촬영(그림 출력물이나 화면 위에 실제 스티커)한 뒤 합성하는 게 가장 확실함 |
+| **합성 전시장이 CG처럼 보임** | 중 | 이미지 AI의 "사진처럼 보이게(photoreal)" 편집을 **낮은 강도**로 한 번 거칠 수 있음. 단, 그림 영역은 잠그고(마스크) 벽·바닥·조명만 바꿀 것 |
+| **실제 전시장이 아님** | 중 | 실제 개인전 사진이 있으면 그걸로 바꾸는 게 신뢰도가 더 높음. 이 영상은 "상상 속 갤러리"로 포지셔닝하면 문제없음 |
+| 음원 저작권 | 하 | AI 생성 음원이나 로열티프리 음원 사용. 생성 툴의 상업 이용 약관 확인 |
 
 ---
 
-## 8. 다음 결정 필요
+## 8. 작업 순서
 
-1. 화면비: 16:9(유튜브·사이트) vs 9:16(쇼츠·릴스)
-2. 실제 전시장 사진 보유 여부 — 있으면 A5 생성 단계 생략
-3. 사용할 영상 생성 툴 — 툴이 정해지면 그 툴 문법(첫/끝 프레임, 길이)에 맞춰 프롬프트 재조정
+1. §3 프롬프트로 frame_D_garden 생성 (참조 이미지: frame_C_wide)
+2. Shot 1 생성 (A) → 마지막 프레임 추출
+3. Shot 2 생성 (Shot 1 마지막 프레임 → C, 가이드 영상 참조)
+4. Shot 3 생성 (C → D)
+5. 편집: 컷 연결 지점 0.3초 크로스페이드, 음악·효과음 얹기, 13.5초부터 엔드카드
