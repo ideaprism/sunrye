@@ -4,7 +4,6 @@ import Gallery from "@/components/Gallery"
 import Guestbook from "@/components/Guestbook"
 import Share from "@/components/Share"
 import GuestbookProvider from "@/components/GuestbookStore"
-import GardenVideo from "@/components/GardenVideo"
 import { siteUrl } from "@/lib/site"
 
 export default function Home() {
@@ -64,16 +63,6 @@ export default function Home() {
         ))}
         <span style={{ fontSize: 18, fontWeight: 700, alignSelf: "flex-end" }}>— {statement.sign}</span>
       </section>
-
-      <div className="divider" />
-
-      {/* 영상 */}
-      <GardenVideo
-        src="/video/garden.mp4"
-        poster="/video/garden-poster.jpg"
-        title="그림 속 꽃이 피어나는 정원"
-        note="작가의 그림을 바탕으로 AI로 만든 상상 영상입니다. 실제 작품과 전시장 모습과는 다릅니다."
-      />
 
       <div className="divider" />
 
